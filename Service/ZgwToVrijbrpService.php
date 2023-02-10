@@ -187,79 +187,77 @@ class ZgwToVrijbrpService
 
         return $this->synchronizationEntity;
     }//end setSynchronizationEntity()
-
+    
     /**
      * Maps zgw eigenschappen to vrijbrp mapping.
      *
-     * @param array $zgw    The ZGW case
+     * @param ObjectEntity $object The zgw case ObjectEntity.
      * @param array $output The output data
-     *
-     * @throws Exception
      *
      * @return array
      */
-    private function getNaamgebruikProperties(array $zgw, array $output): array
+    private function getNaamgebruikProperties(ObjectEntity $object, array $output): array
     {
         $this->mappingLogger->info('Do additional mapping with case properties');
+    
+        $properties = ['geselecteerdNaamgebruik'];
+        $zaakEigenschappen = $this->getZaakEigenschappen($object, $properties);
+        $bsn = $this->getBsnFromRollen($object);
+    
+        $naamgebruikBetrokkenen[] = [
+            'burgerservicenummer' => $bsn,
+            'codeNaamgebruik'     => $zaakEigenschappen['geselecteerdNaamgebruik'],
+        ];
+    
+        $output['aanvraaggegevens'] = [
+            'burgerservicenummerAanvrager' => $bsn,
+            'naamgebruikBetrokkenen'       => $naamgebruikBetrokkenen,
+        ];
 
-//        $properties = $this->getEigenschapValues($zgw['eigenschappen']);
-//        $output['qualificationForDeclaringType'] = $properties['relatie'] ?? null;
-//
-//        if (isset($properties['sub.telefoonnummer'])) {
-//            $output['declarant']['contactInformation']['telephoneNumber'] = $properties['sub.telefoonnummer'];
-//        }
-//        if (isset($properties['sub.emailadres'])) {
-//            $output['declarant']['contactInformation']['email'] = $properties['sub.emailadres'];
-//        }
-//
-//        if (isset($properties['inp.bsn'])) {
-//            $output['mother']['bsn'] = $properties['inp.bsn'];
-//            $output['fatherDuoMother']['bsn'] = $output['declarant']['bsn'];
-//        } else {
-//            $output['mother']['bsn'] = $output['declarant']['bsn'];
-//            !isset($output['declarant']['contactInformation']) ?: $output['mother']['contactInformation'] = $output['declarant']['contactInformation'];
-//        }
-//
-//        foreach ($properties['children'] as $key => $child) {
-//            $output['children'][$key]['firstname'] = $child['voornamen'];
-//            $output['children'][$key]['gender'] = $child['geslachtsaanduiding'];
-//            $birthDate = new \DateTime($child['geboortedatum']);
-//            $birthTime = new \DateTime($child['geboortetijd']);
-//
-//            $output['children'][$key]['birthDateTime'] = $birthDate->format('Y-m-d').'T'.$birthTime->format('H:i:s');
-//        }
-//
-//        $output['children'] = array_values($output['children']);
-//
-//        $output['nameSelection']['lastname'] = $properties['geslachtsnaam'];
-//        !isset($properties['voorvoegselGeslachtsnaam']) ?: $output['nameSelection']['prefix'] = $properties['voorvoegselGeslachtsnaam'];
-//
-//        $this->mappingLogger->info('Done with additional mapping');
+        $this->mappingLogger->info('Done with additional mapping');
 
         return $output;
     }//end getSpecificProperties()
-
+    
     /**
-     * Converts ZGW eigenschappen to key, value pairs.
+     * This function gets the zaakEigenschappen from the zgwZaak with the given properties (simXml elementen and Stuf extraElementen).
      *
-     * @param array $eigenschappen The properties of the case
+     * @param ObjectEntity $zaakObjectEntity The zaak ObjectEntity.
+     * @param array        $properties The properties / eigenschappen we want to get.
      *
-     * @return array
+     * @return array zaakEigenschappen
      */
-    private function getEigenschapValues(array $eigenschappen): array
+    public function getZaakEigenschappen(ObjectEntity $zaakObjectEntity, array $properties): array
     {
-        $this->mappingLogger->debug('Flatten properties to key value pairs');
-        $flatProperties = [];
-        foreach ($eigenschappen as $eigenschap) {
-            if (intval(substr($eigenschap['naam'], -1)) === 0) {
-                $flatProperties[$eigenschap['naam']] = $eigenschap['waarde'];
-            } else {
-                $flatProperties['children'][intval(substr($eigenschap['naam'], -1)) - 1][substr_replace($eigenschap['naam'], '', -1)] = $eigenschap['waarde'];
+        $zaakEigenschappen = [];
+        foreach ($zaakObjectEntity->getValue('eigenschappen') as $eigenschap) {
+            if (in_array($eigenschap->getValue('naam'), $properties)) {
+                $zaakEigenschappen[$eigenschap->getValue('naam')] = $eigenschap->getValue('waarde');
             }
         }
-
-        return $flatProperties;
-    }//end getEigenschapValues()
+        
+        return $zaakEigenschappen;
+    }//end getZaakEigenschappen()
+    
+    /**
+     * This function gets the bsn of the rol with the betrokkeneType set as natuurlijk_persoon.
+     *
+     * @param ObjectEntity $zaakObjectEntity The zaak ObjectEntity.
+     *
+     * @return string bsn of the natuurlijk_persoon
+     */
+    public function getBsnFromRollen(ObjectEntity $zaakObjectEntity): ?string
+    {
+        foreach ($zaakObjectEntity->getValue('rollen') as $rol) {
+            if ($rol->getValue('betrokkeneType') === 'natuurlijk_persoon') {
+                $betrokkeneIdentificatie = $rol->getValue('betrokkeneIdentificatie');
+                
+                return $betrokkeneIdentificatie->getValue('inpBsn');
+            }
+        }
+        
+        return null;
+    }//end getBsnFromRollen()
 
     /**
      * Handles a ZgwToVrijBrp action.
@@ -294,7 +292,7 @@ class ZgwToVrijbrpService
         $objectArray = $this->mappingService->mapping($this->mapping, $object->toArray());
 
         // todo: make this a switch (in a function?) or something when merging all Vrijbrp Bundles:
-        $objectArray = $this->getNaamgebruikProperties($object->toArray(), $objectArray);
+        $objectArray = $this->getNaamgebruikProperties($object, $objectArray);
 
         // Create synchronization.
         $synchronization = $this->syncService->findSyncByObject($object, $this->source, $this->synchronizationEntity);
