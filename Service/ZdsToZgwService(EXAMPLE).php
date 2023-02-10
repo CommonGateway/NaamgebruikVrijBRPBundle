@@ -1,6 +1,6 @@
 <?php
 
-namespace CommonGateway\GeboorteVrijBRPBundle\Service;
+namespace CommonGateway\NaamgebruikVrijBRPBundle\Service;
 
 use App\Entity\Entity;
 use App\Entity\Mapping;

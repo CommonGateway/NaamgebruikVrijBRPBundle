@@ -1,9 +1,9 @@
 <?php
 
-namespace CommonGateway\GeboorteVrijBRPBundle\ActionHandler;
+namespace CommonGateway\NaamgebruikVrijBRPBundle\ActionHandler;
 
 use CommonGateway\CoreBundle\ActionHandler\ActionHandlerInterface;
-use CommonGateway\GeboorteVrijBRPBundle\Service\ZgwToVrijbrpService;
+use CommonGateway\NaamgebruikVrijBRPBundle\Service\ZgwToVrijbrpService;
 use Exception;
 
 // TODO: example

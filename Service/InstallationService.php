@@ -1,6 +1,6 @@
 <?php
 
-namespace CommonGateway\GeboorteVrijBRPBundle\Service;
+namespace CommonGateway\NaamgebruikVrijBRPBundle\Service;
 
 use App\Entity\Action;
 use App\Entity\Cronjob;
@@ -41,16 +41,16 @@ class InstallationService implements InstallerInterface
     ];
 
     public const SOURCES = [
-//        ['name'             => 'vrijbrp-dossiers', 'location' => 'https://vrijbrp.nl/dossiers', 'auth' => 'vrijbrp-jwt',
-//            'username'      => 'sim-!ChangeMe!', 'password' => '!secret-ChangeMe!', 'accept' => 'application/json',
-//            'configuration' => ['verify' => false], ],
+        ['name'             => 'vrijbrp-soap', 'location' => 'https://vrijbrp.nl/personen-zaken-ws/services', 'auth' => 'vrijbrp-jwt',
+            'username'      => 'sim-!ChangeMe!', 'password' => '!secret-ChangeMe!', 'accept' => 'application/json',
+            'configuration' => ['verify' => false], ],
     ];
 
     public const ACTION_HANDLERS = [
-//        'CommonGateway\GeboorteVrijBRPBundle\ActionHandler\ZaakIdentificatieActionHandler',
-//        'CommonGateway\GeboorteVrijBRPBundle\ActionHandler\DocumentIdentificatieActionHandler',
-//        'CommonGateway\GeboorteVrijBRPBundle\ActionHandler\ZdsZaakActionHandler',
-//        'CommonGateway\GeboorteVrijBRPBundle\ActionHandler\ZdsDocumentActionHandler',
+//        'CommonGateway\NaamgebruikVrijBRPBundle\ActionHandler\ZaakIdentificatieActionHandler',
+//        'CommonGateway\NaamgebruikVrijBRPBundle\ActionHandler\DocumentIdentificatieActionHandler',
+//        'CommonGateway\NaamgebruikVrijBRPBundle\ActionHandler\ZdsZaakActionHandler',
+//        'CommonGateway\NaamgebruikVrijBRPBundle\ActionHandler\ZdsDocumentActionHandler',
     ];
 
     /**

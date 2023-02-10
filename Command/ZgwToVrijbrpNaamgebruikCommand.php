@@ -1,8 +1,9 @@
 <?php
 
-namespace CommonGateway\GeboorteVrijBRPBundle\Command;
+namespace CommonGateway\NaamgebruikVrijBRPBundle\Command;
 
-use CommonGateway\GeboorteVrijBRPBundle\Service\ZgwToVrijbrpService;
+use CommonGateway\NaamgebruikVrijBRPBundle\Service\ZgwToVrijbrpService;
+use Exception;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -14,7 +15,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  *
  * @author Wilco Louwerse <wilco@conduction.nl>
  */
-class ZgwToVrijbrpBirthCommand extends Command
+class ZgwToVrijbrpNaamgebruikCommand extends Command
 {
     /**
      * @var string The name of the command (the part after "bin/console").
@@ -27,7 +28,7 @@ class ZgwToVrijbrpBirthCommand extends Command
     private ZgwToVrijbrpService $zgwToVrijbrpService;
     
     /**
-     * Construct a ZgwToVrijbrpBirthCommand.
+     * Construct a ZgwToVrijbrpNaamgebruikCommand.
      *
      * @param ZgwToVrijbrpService $zgwToVrijbrpService The ZgwToVrijbrpService.
      */
@@ -57,10 +58,11 @@ class ZgwToVrijbrpBirthCommand extends Command
     /**
      * What happens when this command is executed.
      *
-     * @param InputInterface  $input  InputInterface.
+     * @param InputInterface $input InputInterface.
      * @param OutputInterface $output OutputInterface.
      *
      * @return int 0 for Success, 1 for Failure.
+     * @throws Exception
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
@@ -78,9 +80,9 @@ class ZgwToVrijbrpBirthCommand extends Command
         $data = ['object' => ['_self' => ['id' => $zaakId]]];
         
         $configuration = [
-            'source'                => ($input->getOption('source', false) ?? 'https://vrijbrp.nl/dossiers'),
-            'location'              => ($input->getOption('location', false) ?? '/api/v1/births'),
-            'mapping'               => ($input->getOption('mapping', false) ?? 'https://vrijbrp.nl/mapping/vrijbrp.ZgwToVrijbrpGeboorte.mapping.json'),
+            'source'                => ($input->getOption('source', false) ?? 'https://vrijbrp.nl/personen-zaken-ws/services'),
+            'location'              => ($input->getOption('location', false) ?? ''),
+            'mapping'               => ($input->getOption('mapping', false) ?? 'https://vrijbrp.nl/mapping/vrijbrp.ZgwToVrijbrpNaamgebruik.mapping.json'),
             'synchronizationEntity' => ($input->getOption('synchronizationEntity', false) ?? 'https://vng.opencatalogi.nl/schemas/zrc.zaak.schema.json'),
         ];
         
