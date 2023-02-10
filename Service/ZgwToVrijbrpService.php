@@ -16,7 +16,6 @@ use Exception;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-// TODO: example
 /**
  * This Service handles the mapping and sending of ZGW zaak data to the Vrijbrp api.
  * todo: I have written this service as abstract as possible (in the little time i had for this) so that we could
@@ -112,7 +111,6 @@ class ZgwToVrijbrpService
 
     /**
      * Set symfony style in order to output to the console when running the handler function through a command.
-     * Todo: use monolog.
      *
      * @param SymfonyStyle $symfonyStyle SymfonyStyle for writing user feedback to console.
      *
@@ -200,43 +198,43 @@ class ZgwToVrijbrpService
      *
      * @return array
      */
-    private function getSpecificProperties(array $zgw, array $output): array
+    private function getNaamgebruikProperties(array $zgw, array $output): array
     {
         $this->mappingLogger->info('Do additional mapping with case properties');
 
-        $properties = $this->getEigenschapValues($zgw['eigenschappen']);
-        $output['qualificationForDeclaringType'] = $properties['relatie'] ?? null;
-
-        if (isset($properties['sub.telefoonnummer'])) {
-            $output['declarant']['contactInformation']['telephoneNumber'] = $properties['sub.telefoonnummer'];
-        }
-        if (isset($properties['sub.emailadres'])) {
-            $output['declarant']['contactInformation']['email'] = $properties['sub.emailadres'];
-        }
-
-        if (isset($properties['inp.bsn'])) {
-            $output['mother']['bsn'] = $properties['inp.bsn'];
-            $output['fatherDuoMother']['bsn'] = $output['declarant']['bsn'];
-        } else {
-            $output['mother']['bsn'] = $output['declarant']['bsn'];
-            !isset($output['declarant']['contactInformation']) ?: $output['mother']['contactInformation'] = $output['declarant']['contactInformation'];
-        }
-
-        foreach ($properties['children'] as $key => $child) {
-            $output['children'][$key]['firstname'] = $child['voornamen'];
-            $output['children'][$key]['gender'] = $child['geslachtsaanduiding'];
-            $birthDate = new \DateTime($child['geboortedatum']);
-            $birthTime = new \DateTime($child['geboortetijd']);
-
-            $output['children'][$key]['birthDateTime'] = $birthDate->format('Y-m-d').'T'.$birthTime->format('H:i:s');
-        }
-
-        $output['children'] = array_values($output['children']);
-
-        $output['nameSelection']['lastname'] = $properties['geslachtsnaam'];
-        !isset($properties['voorvoegselGeslachtsnaam']) ?: $output['nameSelection']['prefix'] = $properties['voorvoegselGeslachtsnaam'];
-
-        $this->mappingLogger->info('Done with additional mapping');
+//        $properties = $this->getEigenschapValues($zgw['eigenschappen']);
+//        $output['qualificationForDeclaringType'] = $properties['relatie'] ?? null;
+//
+//        if (isset($properties['sub.telefoonnummer'])) {
+//            $output['declarant']['contactInformation']['telephoneNumber'] = $properties['sub.telefoonnummer'];
+//        }
+//        if (isset($properties['sub.emailadres'])) {
+//            $output['declarant']['contactInformation']['email'] = $properties['sub.emailadres'];
+//        }
+//
+//        if (isset($properties['inp.bsn'])) {
+//            $output['mother']['bsn'] = $properties['inp.bsn'];
+//            $output['fatherDuoMother']['bsn'] = $output['declarant']['bsn'];
+//        } else {
+//            $output['mother']['bsn'] = $output['declarant']['bsn'];
+//            !isset($output['declarant']['contactInformation']) ?: $output['mother']['contactInformation'] = $output['declarant']['contactInformation'];
+//        }
+//
+//        foreach ($properties['children'] as $key => $child) {
+//            $output['children'][$key]['firstname'] = $child['voornamen'];
+//            $output['children'][$key]['gender'] = $child['geslachtsaanduiding'];
+//            $birthDate = new \DateTime($child['geboortedatum']);
+//            $birthTime = new \DateTime($child['geboortetijd']);
+//
+//            $output['children'][$key]['birthDateTime'] = $birthDate->format('Y-m-d').'T'.$birthTime->format('H:i:s');
+//        }
+//
+//        $output['children'] = array_values($output['children']);
+//
+//        $output['nameSelection']['lastname'] = $properties['geslachtsnaam'];
+//        !isset($properties['voorvoegselGeslachtsnaam']) ?: $output['nameSelection']['prefix'] = $properties['voorvoegselGeslachtsnaam'];
+//
+//        $this->mappingLogger->info('Done with additional mapping');
 
         return $output;
     }//end getSpecificProperties()
@@ -295,7 +293,8 @@ class ZgwToVrijbrpService
         // Do mapping with Zaak ObjectEntity as array.
         $objectArray = $this->mappingService->mapping($this->mapping, $object->toArray());
 
-        $objectArray = $this->getSpecificProperties($object->toArray(), $objectArray);
+        // todo: make this a switch (in a function?) or something when merging all Vrijbrp Bundles:
+        $objectArray = $this->getNaamgebruikProperties($object->toArray(), $objectArray);
 
         // Create synchronization.
         $synchronization = $this->syncService->findSyncByObject($object, $this->source, $this->synchronizationEntity);
