@@ -1,6 +1,6 @@
 <?php
 
-namespace CommonGateway\GeboorteVrijBRPBundle\Service;
+namespace CommonGateway\NaamgebruikVrijBRPBundle\Service;
 
 use App\Entity\Entity;
 use App\Entity\Mapping;
@@ -13,7 +13,6 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 
-// TODO: example
 /**
  *  This class handles the interaction with componentencatalogus.commonground.nl.
  */
