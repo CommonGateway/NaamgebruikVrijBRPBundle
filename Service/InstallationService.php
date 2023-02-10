@@ -178,7 +178,15 @@ class InstallationService implements InstallerInterface
 
             $defaultConfig = $this->addActionConfiguration($actionHandler);
             $action = new Action($actionHandler);
-
+    
+            if ($this->entityManager->getRepository('App:Action')->findOneBy(['reference' => $schema['$id']]) instanceof Action === true) {
+                if (isset($this->symfonyStyle) === true) {
+                    $this->symfonyStyle->writeln(['Action found for '.$handler]);
+                }
+                continue;
+            }
+            
+            $action->setReference($schema['$id']);
             if ($schema['$id'] === 'https://zds.nl/zds.creerzaakid.handler.json') {
                 $action->setListens(['zds.inbound']);
                 $action->setConditions([
