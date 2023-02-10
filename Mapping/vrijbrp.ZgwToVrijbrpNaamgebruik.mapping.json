@@ -1,0 +1,14 @@
+{
+  "title": "ZgwToVrijbrp",
+  "$id": "https://vrijbrp.nl/mapping/vrijbrp.ZgwToVrijbrpNaamgebruik.mapping.json",
+  "$schema": "https://json-schema.org/draft/2020-12/mapping",
+  "version": "0.0.1",
+  "passTrough": false,
+  "mapping": {
+    "zaakgegevens.zaakId": "identificatie",
+    "zaakgegevens.bron": "eDienst",
+    "zaakgegevens.leverancier": "opdrachtgevendeOrganisatie",
+    "zaakgegevens.datumAanvraag": "registratiedatum",
+    "zaakgegevens.toelichting": "toelichting"
+  }
+}

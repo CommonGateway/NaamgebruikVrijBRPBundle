@@ -41,7 +41,7 @@ class InstallationService implements InstallerInterface
     ];
 
     public const SOURCES = [
-        ['name'             => 'vrijbrp-dossiers', 'location' => 'https://vrijbrp.nl/dossiers', 'auth' => 'vrijbrp-jwt',
+        ['name'             => 'vrijbrp-soap', 'location' => 'https://vrijbrp.nl/personen-zaken-ws/services', 'auth' => 'vrijbrp-jwt',
             'username'      => 'sim-!ChangeMe!', 'password' => '!secret-ChangeMe!', 'accept' => 'application/json',
             'configuration' => ['verify' => false], ],
     ];
@@ -164,21 +164,21 @@ class InstallationService implements InstallerInterface
         foreach ($actionHandlers as $handler) {
             $actionHandler = $this->container->get($handler);
 
-            if ($this->entityManager->getRepository('App:Action')->findOneBy(['class' => get_class($actionHandler)]) instanceof Action === true) {
+            $schema = $actionHandler->getConfiguration();
+            if ($schema === null) {
+                continue;
+            }
+            if ($this->entityManager->getRepository('App:Action')->findOneBy(['reference' => $schema['$id']]) instanceof Action === true) {
                 if (isset($this->symfonyStyle) === true) {
                     $this->symfonyStyle->writeln(['Action found for '.$handler]);
                 }
                 continue;
             }
 
-            $schema = $actionHandler->getConfiguration();
-            if ($schema === null) {
-                continue;
-            }
-
             $defaultConfig = $this->addActionConfiguration($actionHandler);
             $action = new Action($actionHandler);
 
+            $action->setReference($schema['$id']);
             if ($schema['$id'] === 'https://zds.nl/zds.creerzaakid.handler.json') {
                 $action->setListens(['zds.inbound']);
                 $action->setConditions([

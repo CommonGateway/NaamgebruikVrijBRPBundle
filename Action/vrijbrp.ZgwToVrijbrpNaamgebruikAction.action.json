@@ -1,0 +1,25 @@
+{
+  "title": "ZgwToVrijbrpNaamgebruikAction",
+  "$id": "https://vrijbrp.nl/action/vrijbrp.ZgwToVrijbrpNaamgebruikAction.action.json",
+  "$schema": "https://json-schema.org/draft/2020-12/action",
+  "version": "0.0.2",
+  "listens": [
+    "vrijbrp.zaak.created"
+  ],
+  "throws": [],
+  "conditions": {
+    "==": [
+      {"var": "object.zaaktype.identificatie"},
+      "B0348"
+    ]
+  },
+  "class": "CommonGateway\\NaamgebruikVrijBRPBundle\\ActionHandler\\ZgwToVrijbrpHandler",
+  "configuration": {
+    "source": "https://vrijbrp.nl/personen-zaken-ws/services",
+    "location": "",
+    "mapping": "https://vrijbrp.nl/mapping/vrijbrp.ZgwToVrijbrpNaamgebruik.mapping.json",
+    "synchronizationEntity": "https://vng.opencatalogi.nl/schemas/zrc.zaak.schema.json"
+  },
+  "isLockable": false,
+  "isEnabled": true
+}

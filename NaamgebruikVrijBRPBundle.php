@@ -1,5 +1,5 @@
 <?php
-// src/PetStoreBundle.php
+// src/NaamgebruikVrijBRPBundle.php
 namespace CommonGateway\NaamgebruikVrijBRPBundle;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
