@@ -9,10 +9,6 @@
     "zaakgegevens.bron": "eDienst",
     "zaakgegevens.leverancier": "opdrachtgevendeOrganisatie",
     "zaakgegevens.datumAanvraag": "registratiedatum",
-    "zaakgegevens.toelichting": "toelichting",
-    "contactgegevens.emailadres": null,
-    "contactgegevens.telefoonnummerPrive": null,
-    "contactgegevens.telefoonnummerWerk": null,
-    "contactgegevens.telefoonnummerMobiel": null
+    "zaakgegevens.toelichting": "toelichting"
   }
 }

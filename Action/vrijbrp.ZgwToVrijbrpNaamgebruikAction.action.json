@@ -2,14 +2,15 @@
   "title": "ZgwToVrijbrpNaamgebruikAction",
   "$id": "https://vrijbrp.nl/action/vrijbrp.ZgwToVrijbrpNaamgebruikAction.action.json",
   "$schema": "https://json-schema.org/draft/2020-12/action",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "listens": [
-    "vrijbrp.zaak.naamgebruik.created"
+    "vrijbrp.zaak.created"
   ],
   "throws": [],
   "conditions": {
     "==": [
-      1,1
+      {"var": "object.zaaktype.identificatie"},
+      "B0348"
     ]
   },
   "class": "CommonGateway\\NaamgebruikVrijBRPBundle\\ActionHandler\\ZgwToVrijbrpHandler",

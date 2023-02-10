@@ -200,8 +200,10 @@ class ZgwToVrijbrpService
     {
         $this->mappingLogger->info('Do additional mapping with case properties');
     
-        $properties = ['geselecteerdNaamgebruik'];
+        $properties = ['bsn', 'gemeentecode', 'sub.telefoonnummer', 'sub.emailadres', 'geselecteerdNaamgebruik'];
         $zaakEigenschappen = $this->getZaakEigenschappen($object, $properties);
+        $output['contactgegevens'] = $this->getContactgegevens($zaakEigenschappen);
+        
         $bsn = $this->getBsnFromRollen($object);
     
         $naamgebruikBetrokkenen[] = [
@@ -258,6 +260,23 @@ class ZgwToVrijbrpService
         
         return null;
     }//end getBsnFromRollen()
+    
+    /**
+     * Creates a VrijRBP Soap Contactgegevens array with the data of the zgwZaak.
+     *
+     * @param array $zaakEigenschappen zaakEigenschappen.
+     *
+     * @return array contactgegevens.
+     */
+    public function getContactgegevens(array $zaakEigenschappen): array
+    {
+        return [
+            'emailadres'           => $zaakEigenschappen['sub.emailadres'],
+            'telefoonnummerPrive'  => $zaakEigenschappen['sub.telefoonnummer'],
+            'telefoonnummerWerk'   => null,
+            'telefoonnummerMobiel' => null,
+        ];
+    }//end getContactgegevens()
 
     /**
      * Handles a ZgwToVrijBrp action.
@@ -267,9 +286,9 @@ class ZgwToVrijbrpService
      *
      * @throws Exception
      *
-     * @return array|null Data.
+     * @return array Data.
      */
-    public function zgwToVrijbrpHandler(array $data, array $configuration): ?array
+    public function zgwToVrijbrpHandler(array $data, array $configuration): array
     {
         $this->logger->info('Converting ZGW object to VrijBRP');
         $this->configuration = $configuration;
@@ -287,12 +306,20 @@ class ZgwToVrijbrpService
         $this->logger->debug("(Zaak) Object with id $dataId was created");
 
         $object = $this->entityManager->getRepository('App:ObjectEntity')->find($dataId);
+        $objectArray = $object->toArray();
+        $zaakTypeId = $objectArray['zaaktype']['identificatie'];
 
         // Do mapping with Zaak ObjectEntity as array.
-        $objectArray = $this->mappingService->mapping($this->mapping, $object->toArray());
+        $objectArray = $this->mappingService->mapping($this->mapping, $objectArray);
 
-        // todo: make this a switch (in a function?) or something when merging all Vrijbrp Bundles:
-        $objectArray = $this->getNaamgebruikProperties($object, $objectArray);
+        // todo: make this a function? when merging all Vrijbrp Bundles:
+        switch ($zaakTypeId) {
+            case 'B0348':
+                $objectArray = $this->getNaamgebruikProperties($object, $objectArray);
+                break;
+            default:
+                return [];
+        }
 
         // Create synchronization.
         $synchronization = $this->syncService->findSyncByObject($object, $this->source, $this->synchronizationEntity);
