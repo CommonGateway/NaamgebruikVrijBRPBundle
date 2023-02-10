@@ -9,26 +9,25 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-// TODO: example
 /**
  * Command to execute the ZgwToVrijbrpService.
  *
  * @author Wilco Louwerse <wilco@conduction.nl>
  */
-class ZgwToVrijbrpCommand extends Command
+class ZgwToVrijbrpBirthCommand extends Command
 {
     /**
      * @var string The name of the command (the part after "bin/console").
      */
-    protected static $defaultName = 'vrijbrp:ZgwToVrijbrp';
-
+    protected static $defaultName = 'vrijbrp:ZgwToVrijbrp:naamgebruik';
+    
     /**
      * @var ZgwToVrijbrpService The ZgwToVrijbrpService that will be used/tested with this command.
      */
     private ZgwToVrijbrpService $zgwToVrijbrpService;
-
+    
     /**
-     * Construct a ZgwToVrijbrpCommand.
+     * Construct a ZgwToVrijbrpBirthCommand.
      *
      * @param ZgwToVrijbrpService $zgwToVrijbrpService The ZgwToVrijbrpService.
      */
@@ -37,7 +36,7 @@ class ZgwToVrijbrpCommand extends Command
         $this->zgwToVrijbrpService = $zgwToVrijbrpService;
         parent::__construct();
     }//end __construct()
-
+    
     /**
      * Configure this command.
      *
@@ -46,7 +45,7 @@ class ZgwToVrijbrpCommand extends Command
     protected function configure(): void
     {
         $this
-            ->setDescription('This command triggers ZgwToVrijbrpService->zgwToVrijbrpHandler()')
+            ->setDescription('This command triggers ZgwToVrijbrpService->zgwToVrijbrpHandler() for a naamgebruik e-dienst')
             ->setHelp('This command allows you to test mapping and sending a ZGW zaak to the Vrijbrp api /dossiers')
             ->addOption('zaak', 'z', InputOption::VALUE_REQUIRED, 'The zaak uuid we should test with')
             ->addOption('source', 's', InputOption::VALUE_OPTIONAL, 'The location of the Source we will send a request to, location of an existing Source object')
@@ -54,7 +53,7 @@ class ZgwToVrijbrpCommand extends Command
             ->addOption('mapping', 'm', InputOption::VALUE_OPTIONAL, 'The reference of the mapping we will use before sending the data to the source')
             ->addOption('synchronizationEntity', 'se', InputOption::VALUE_OPTIONAL, 'The reference of the entity we need to create a synchronization object');
     }//end configure()
-
+    
     /**
      * What happens when this command is executed.
      *
@@ -67,28 +66,28 @@ class ZgwToVrijbrpCommand extends Command
     {
         $symfonyStyle = new SymfonyStyle($input, $output);
         $this->zgwToVrijbrpService->setStyle($symfonyStyle);
-
+        
         // Handle the command options.
         $zaakId = $input->getOption('zaak', false);
         if ($zaakId === false) {
-            $symfonyStyle->error('Please use vrijbrp:ZgwToVrijbrp -z {uuid of a zaak}');
-
+            $symfonyStyle->error('Please use vrijbrp:ZgwToVrijbrp:naamgebruik -z {uuid of a zaak}');
+            
             return Command::FAILURE;
         }
-
+        
         $data = ['object' => ['_self' => ['id' => $zaakId]]];
-
+        
         $configuration = [
-            'source'          => ($input->getOption('source', false) ?? 'https://vrijbrp.nl/dossiers'),
-            'location'        => ($input->getOption('location', false) ?? '/api/births'),
-            'mapping'         => ($input->getOption('mapping', false) ?? 'https://vrijbrp.nl/mapping/vrijbrp.ZgwToVrijbrpGeboorte.mapping.json'),
+            'source'                => ($input->getOption('source', false) ?? 'https://vrijbrp.nl/dossiers'),
+            'location'              => ($input->getOption('location', false) ?? '/api/v1/births'),
+            'mapping'               => ($input->getOption('mapping', false) ?? 'https://vrijbrp.nl/mapping/vrijbrp.ZgwToVrijbrpGeboorte.mapping.json'),
             'synchronizationEntity' => ($input->getOption('synchronizationEntity', false) ?? 'https://vng.opencatalogi.nl/schemas/zrc.zaak.schema.json'),
         ];
-
+        
         if ($this->zgwToVrijbrpService->zgwToVrijbrpHandler($data, $configuration) === []) {
             return Command::FAILURE;
         }
-
+        
         return Command::SUCCESS;
     }//end execute()
 }
