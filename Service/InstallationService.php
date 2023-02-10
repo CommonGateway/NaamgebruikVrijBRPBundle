@@ -1,6 +1,6 @@
 <?php
 
-namespace CommonGateway\GeboorteVrijBRPBundle\Service;
+namespace CommonGateway\NaamgebruikVrijBRPBundle\Service;
 
 use App\Entity\Action;
 use App\Entity\Cronjob;
@@ -37,20 +37,20 @@ class InstallationService implements InstallerInterface
     public const OBJECTS_WITH_CARDS = [];
 
     public const ENDPOINTS = [
-//        ['path' => 'stuf/zds', 'throws' => ['zds.inbound'], 'name' => 'zds-endpoint', 'methods' => []],
+        ['path' => 'stuf/zds', 'throws' => ['zds.inbound'], 'name' => 'zds-endpoint', 'methods' => []],
     ];
 
     public const SOURCES = [
-//        ['name'             => 'vrijbrp-dossiers', 'location' => 'https://vrijbrp.nl/dossiers', 'auth' => 'vrijbrp-jwt',
-//            'username'      => 'sim-!ChangeMe!', 'password' => '!secret-ChangeMe!', 'accept' => 'application/json',
-//            'configuration' => ['verify' => false], ],
+        ['name'             => 'vrijbrp-dossiers', 'location' => 'https://vrijbrp.nl/dossiers', 'auth' => 'vrijbrp-jwt',
+            'username'      => 'sim-!ChangeMe!', 'password' => '!secret-ChangeMe!', 'accept' => 'application/json',
+            'configuration' => ['verify' => false], ],
     ];
 
     public const ACTION_HANDLERS = [
-//        'CommonGateway\GeboorteVrijBRPBundle\ActionHandler\ZaakIdentificatieActionHandler',
-//        'CommonGateway\GeboorteVrijBRPBundle\ActionHandler\DocumentIdentificatieActionHandler',
-//        'CommonGateway\GeboorteVrijBRPBundle\ActionHandler\ZdsZaakActionHandler',
-//        'CommonGateway\GeboorteVrijBRPBundle\ActionHandler\ZdsDocumentActionHandler',
+        'CommonGateway\NaamgebruikVrijBRPBundle\ActionHandler\ZaakIdentificatieActionHandler',
+        'CommonGateway\NaamgebruikVrijBRPBundle\ActionHandler\DocumentIdentificatieActionHandler',
+        'CommonGateway\NaamgebruikVrijBRPBundle\ActionHandler\ZdsZaakActionHandler',
+        'CommonGateway\NaamgebruikVrijBRPBundle\ActionHandler\ZdsDocumentActionHandler',
     ];
 
     /**
@@ -191,7 +191,7 @@ class InstallationService implements InstallerInterface
                 ]);
             } elseif ($schema['$id'] === 'https://zds.nl/zds.creerzaak.handler.json') {
                 $action->setListens(['zds.inbound']);
-                $action->setThrows(['vrijbrp.zaak.birth.created']);
+                $action->setThrows(['vrijbrp.zaak.created']);
                 $action->setConditions([
                     'var' => 'body.SOAP-ENV:Body.ns2:zakLk01',
                 ]);
