@@ -1,6 +1,6 @@
 {
-    "name": "common-gateway/pet-store-bundle",
-    "description": "An example package for creating symfony flex bundles as plugins",
+    "name": "common-gateway/naamgebruik-vrijbrp-bundle",
+    "description": "A vrijbrp e-dienst bundle for naamgebruik",
     "type": "symfony-bundle",
     "keywords": [
         "commongateway",
@@ -9,14 +9,17 @@
         "conduction",
         "symfony",
         "common-gateway-plugin",
-        "pet store"
+        "vrijbrp",
+        "e-dienst",
+        "naamgebruik"
     ],
     "homepage": "https://commongateway.nl",
     "license": "EUPL-1.2",
     "minimum-stability": "dev",
     "require": {
         "php": ">=7.4",
-        "commongateway/corebundle": "dev-master"
+        "commongateway/corebundle": "dev-master",
+        "common-gateway/zgw-bundle": "^0.1"
     },
     "require-dev": {
         "symfony/dependency-injection": "~3.4|~4.1|~5.0"
@@ -27,8 +30,8 @@
         }
     },
     "scripts": {
-        "post-package-install": "bin/console common-gateway/pet-store-bundle",
-        "post-package-update": "bin/console common-gateway/pet-store-bundle",
-        "post-package-uninstall": "bin/console common-gateway/pet-store-bundle"
+        "post-package-install": "bin/console common-gateway/naamgebruik-vrijbrp-bundle",
+        "post-package-update": "bin/console common-gateway/naamgebruik-vrijbrp-bundle",
+        "post-package-uninstall": "bin/console common-gateway/naamgebruik-vrijbrp-bundle"
     }
 }
