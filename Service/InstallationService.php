@@ -37,7 +37,7 @@ class InstallationService implements InstallerInterface
     public const OBJECTS_WITH_CARDS = [];
 
     public const ENDPOINTS = [
-//        ['path' => 'stuf/zds', 'throws' => ['zds.inbound'], 'name' => 'zds-endpoint', 'methods' => []],
+        ['path' => 'stuf/zds', 'throws' => ['zds.inbound'], 'name' => 'zds-endpoint', 'methods' => []],
     ];
 
     public const SOURCES = [
@@ -47,10 +47,10 @@ class InstallationService implements InstallerInterface
     ];
 
     public const ACTION_HANDLERS = [
-//        'CommonGateway\NaamgebruikVrijBRPBundle\ActionHandler\ZaakIdentificatieActionHandler',
-//        'CommonGateway\NaamgebruikVrijBRPBundle\ActionHandler\DocumentIdentificatieActionHandler',
-//        'CommonGateway\NaamgebruikVrijBRPBundle\ActionHandler\ZdsZaakActionHandler',
-//        'CommonGateway\NaamgebruikVrijBRPBundle\ActionHandler\ZdsDocumentActionHandler',
+        'CommonGateway\NaamgebruikVrijBRPBundle\ActionHandler\ZaakIdentificatieActionHandler',
+        'CommonGateway\NaamgebruikVrijBRPBundle\ActionHandler\DocumentIdentificatieActionHandler',
+        'CommonGateway\NaamgebruikVrijBRPBundle\ActionHandler\ZdsZaakActionHandler',
+        'CommonGateway\NaamgebruikVrijBRPBundle\ActionHandler\ZdsDocumentActionHandler',
     ];
 
     /**
