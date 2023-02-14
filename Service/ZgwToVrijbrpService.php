@@ -13,6 +13,9 @@ use CommonGateway\CoreBundle\Service\CallService;
 use CommonGateway\CoreBundle\Service\MappingService;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Exception\ServerException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
@@ -187,7 +190,7 @@ class ZgwToVrijbrpService
 
         return $this->synchronizationEntity;
     }//end setSynchronizationEntity()
-    
+
     /**
      * Maps zgw eigenschappen to vrijbrp mapping.
      *
@@ -199,18 +202,18 @@ class ZgwToVrijbrpService
     private function getNaamgebruikProperties(ObjectEntity $object, array $output): array
     {
         $this->mappingLogger->info('Do additional mapping with case properties');
-    
+
         $properties = ['bsn', 'gemeentecode', 'sub.telefoonnummer', 'sub.emailadres', 'geselecteerdNaamgebruik'];
         $zaakEigenschappen = $this->getZaakEigenschappen($object, $properties);
         $output['contactgegevens'] = $this->getContactgegevens($zaakEigenschappen);
-        
+
         $bsn = $this->getBsnFromRollen($object);
-    
+
         $naamgebruikBetrokkenen[] = [
             'burgerservicenummer' => $bsn,
             'codeNaamgebruik'     => $zaakEigenschappen['geselecteerdNaamgebruik'],
         ];
-    
+
         $output['aanvraaggegevens'] = [
             'burgerservicenummerAanvrager' => $bsn,
             'naamgebruikBetrokkenen'       => $naamgebruikBetrokkenen,
@@ -220,7 +223,7 @@ class ZgwToVrijbrpService
 
         return $output;
     }//end getSpecificProperties()
-    
+
     /**
      * This function gets the zaakEigenschappen from the zgwZaak with the given properties (simXml elementen and Stuf extraElementen).
      *
@@ -237,10 +240,10 @@ class ZgwToVrijbrpService
                 $zaakEigenschappen[$eigenschap->getValue('naam')] = $eigenschap->getValue('waarde');
             }
         }
-        
+
         return $zaakEigenschappen;
     }//end getZaakEigenschappen()
-    
+
     /**
      * This function gets the bsn of the rol with the betrokkeneType set as natuurlijk_persoon.
      *
@@ -253,14 +256,14 @@ class ZgwToVrijbrpService
         foreach ($zaakObjectEntity->getValue('rollen') as $rol) {
             if ($rol->getValue('betrokkeneType') === 'natuurlijk_persoon') {
                 $betrokkeneIdentificatie = $rol->getValue('betrokkeneIdentificatie');
-                
+
                 return $betrokkeneIdentificatie->getValue('inpBsn');
             }
         }
-        
+
         return null;
     }//end getBsnFromRollen()
-    
+
     /**
      * Creates a VrijRBP Soap Contactgegevens array with the data of the zgwZaak.
      *
@@ -358,6 +361,7 @@ class ZgwToVrijbrpService
     {
         $objectString = $this->syncService->getObjectString($objectArray);
 
+        $this->logger->info('Sending message with body '.$objectString);
         try {
             $result = $this->callService->call(
                 $this->source,
@@ -380,7 +384,7 @@ class ZgwToVrijbrpService
                     ],
                 ]
             );
-            $this->logger->error('Could not synchronize object. Error message: '.$exception->getMessage());
+            $this->logger->error('Could not synchronize object. Error message: '.$exception->getMessage().'\nFull Response'. ($exception instanceof ServerException||$exception instanceof ClientException||$exception instanceof RequestException === true ? $exception->getResponse()->getBody() : ''));
 
             return [];
         }//end try
