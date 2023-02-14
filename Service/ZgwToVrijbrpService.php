@@ -18,6 +18,7 @@ use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Exception\ServerException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\Serializer\Encoder\XmlEncoder;
 
 /**
  * This Service handles the mapping and sending of ZGW zaak data to the Vrijbrp api.
@@ -359,7 +360,8 @@ class ZgwToVrijbrpService
      */
     private function synchronizeTemp(Synchronization $synchronization, array $objectArray): array
     {
-        $objectString = $this->syncService->getObjectString($objectArray);
+        $xmlEncoder = new XmlEncoder(['xml_root_node_name' => 'soapenv:Envelope']);
+        $objectString = $xmlEncoder->encode($objectArray, 'xml', ['xml_encoding' => 'utf-8', 'remove_empty_tags' => true]);
 
         $this->logger->info('Sending message with body '.$objectString);
         try {
