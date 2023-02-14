@@ -1,6 +1,6 @@
 <?php
 
-namespace CommonGateway\GeboorteVrijBRPBundle\Service;
+namespace CommonGateway\NaamgebruikVrijBRPBundle\Service;
 
 use Adbar\Dot;
 use App\Entity\Entity;
