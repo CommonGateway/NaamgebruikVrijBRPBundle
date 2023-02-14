@@ -1,6 +1,6 @@
 <?php
 
-namespace CommonGateway\NaamgebruikVrijBRPBundle\Service;
+namespace CommonGateway\GeboorteVrijBRPBundle\Service;
 
 use Adbar\Dot;
 use App\Entity\Entity;
@@ -13,6 +13,10 @@ use CommonGateway\CoreBundle\Service\CallService;
 use CommonGateway\CoreBundle\Service\MappingService;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Exception\ServerException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
@@ -180,103 +184,87 @@ class ZgwToVrijbrpService
             if (isset($this->symfonyStyle) === true) {
                 $this->symfonyStyle->error("No entity found with reference: {$this->configuration['synchronizationEntity']}");
             }
-            $this->logger->error("No entity found with reference: {$this->configuration['conditionEntity']}");
+            $this->logger->error("No entity found with reference: {$this->configuration['synchronizationEntity']}");
 
             return null;
         }
 
         return $this->synchronizationEntity;
     }//end setSynchronizationEntity()
-    
+
     /**
      * Maps zgw eigenschappen to vrijbrp mapping.
      *
-     * @param ObjectEntity $object The zgw case ObjectEntity.
+     * @param array $zgw    The ZGW case
      * @param array $output The output data
+     *
+     * @throws Exception
      *
      * @return array
      */
-    private function getNaamgebruikProperties(ObjectEntity $object, array $output): array
+    private function getBirthProperties(array $zgw, array $output): array
     {
         $this->mappingLogger->info('Do additional mapping with case properties');
-    
-        $properties = ['bsn', 'gemeentecode', 'sub.telefoonnummer', 'sub.emailadres', 'geselecteerdNaamgebruik'];
-        $zaakEigenschappen = $this->getZaakEigenschappen($object, $properties);
-        $output['contactgegevens'] = $this->getContactgegevens($zaakEigenschappen);
-        
-        $bsn = $this->getBsnFromRollen($object);
-    
-        $naamgebruikBetrokkenen[] = [
-            'burgerservicenummer' => $bsn,
-            'codeNaamgebruik'     => $zaakEigenschappen['geselecteerdNaamgebruik'],
-        ];
-    
-        $output['aanvraaggegevens'] = [
-            'burgerservicenummerAanvrager' => $bsn,
-            'naamgebruikBetrokkenen'       => $naamgebruikBetrokkenen,
-        ];
+
+        $properties = $this->getEigenschapValues($zgw['eigenschappen']);
+        $output['qualificationForDeclaringType'] = $properties['relatie'] ?? null;
+
+        if (isset($properties['sub.telefoonnummer'])) {
+            $output['declarant']['contactInformation']['telephoneNumber'] = $properties['sub.telefoonnummer'];
+        }
+        if (isset($properties['sub.emailadres'])) {
+            $output['declarant']['contactInformation']['email'] = $properties['sub.emailadres'];
+        }
+
+        if (isset($properties['inp.bsn'])) {
+            $output['mother']['bsn'] = $properties['inp.bsn'];
+            $output['fatherDuoMother']['bsn'] = $output['declarant']['bsn'];
+        } else {
+            $output['mother']['bsn'] = $output['declarant']['bsn'];
+            !isset($output['declarant']['contactInformation']) ?: $output['mother']['contactInformation'] = $output['declarant']['contactInformation'];
+        }
+
+        foreach ($properties['children'] as $key => $child) {
+            $output['children'][$key]['firstname'] = $child['voornamen'];
+            $output['children'][$key]['gender'] = $child['geslachtsaanduiding'];
+            $birthDate = new \DateTime($child['geboortedatum']);
+            $birthTime = new \DateTime($child['geboortetijd']);
+
+            $output['children'][$key]['birthDateTime'] = $birthDate->format('Y-m-d').'T'.$birthTime->format('H:i:s');
+        }
+
+        $output['children'] = array_values($output['children']);
+
+        $output['nameSelection']['lastname'] = $properties['geslachtsnaam'];
+        !isset($properties['voorvoegselGeslachtsnaam']) ?: $output['nameSelection']['prefix'] = $properties['voorvoegselGeslachtsnaam'];
 
         $this->mappingLogger->info('Done with additional mapping');
 
         return $output;
     }//end getSpecificProperties()
-    
+
     /**
-     * This function gets the zaakEigenschappen from the zgwZaak with the given properties (simXml elementen and Stuf extraElementen).
+     * Converts ZGW eigenschappen to key, value pairs.
      *
-     * @param ObjectEntity $zaakObjectEntity The zaak ObjectEntity.
-     * @param array        $properties The properties / eigenschappen we want to get.
+     * @param array $eigenschappen The properties of the case
      *
-     * @return array zaakEigenschappen
+     * @return array
      */
-    public function getZaakEigenschappen(ObjectEntity $zaakObjectEntity, array $properties): array
+    private function getEigenschapValues(array $eigenschappen): array
     {
-        $zaakEigenschappen = [];
-        foreach ($zaakObjectEntity->getValue('eigenschappen') as $eigenschap) {
-            if (in_array($eigenschap->getValue('naam'), $properties)) {
-                $zaakEigenschappen[$eigenschap->getValue('naam')] = $eigenschap->getValue('waarde');
+        $this->mappingLogger->debug('Flatten properties to key value pairs');
+        $flatProperties = [];
+        foreach ($eigenschappen as $eigenschap) {
+            // Check if last character of $eigenschap['naam'] is a string or an integer. === 0 if it is a string.
+            if (intval(substr($eigenschap['naam'], -1)) === 0) {
+                $flatProperties[$eigenschap['naam']] = $eigenschap['waarde'];
+            } else {
+                $flatProperties['children'][intval(substr($eigenschap['naam'], -1)) - 1][substr_replace($eigenschap['naam'], '', -1)] = $eigenschap['waarde'];
             }
         }
-        
-        return $zaakEigenschappen;
-    }//end getZaakEigenschappen()
-    
-    /**
-     * This function gets the bsn of the rol with the betrokkeneType set as natuurlijk_persoon.
-     *
-     * @param ObjectEntity $zaakObjectEntity The zaak ObjectEntity.
-     *
-     * @return string bsn of the natuurlijk_persoon
-     */
-    public function getBsnFromRollen(ObjectEntity $zaakObjectEntity): ?string
-    {
-        foreach ($zaakObjectEntity->getValue('rollen') as $rol) {
-            if ($rol->getValue('betrokkeneType') === 'natuurlijk_persoon') {
-                $betrokkeneIdentificatie = $rol->getValue('betrokkeneIdentificatie');
-                
-                return $betrokkeneIdentificatie->getValue('inpBsn');
-            }
-        }
-        
-        return null;
-    }//end getBsnFromRollen()
-    
-    /**
-     * Creates a VrijRBP Soap Contactgegevens array with the data of the zgwZaak.
-     *
-     * @param array $zaakEigenschappen zaakEigenschappen.
-     *
-     * @return array contactgegevens.
-     */
-    public function getContactgegevens(array $zaakEigenschappen): array
-    {
-        return [
-            'emailadres'           => $zaakEigenschappen['sub.emailadres'],
-            'telefoonnummerPrive'  => $zaakEigenschappen['sub.telefoonnummer'],
-            'telefoonnummerWerk'   => null,
-            'telefoonnummerMobiel' => null,
-        ];
-    }//end getContactgegevens()
+
+        return $flatProperties;
+    }//end getEigenschapValues()
 
     /**
      * Handles a ZgwToVrijBrp action.
@@ -314,8 +302,8 @@ class ZgwToVrijbrpService
 
         // todo: make this a function? when merging all Vrijbrp Bundles:
         switch ($zaakTypeId) {
-            case 'B0348':
-                $objectArray = $this->getNaamgebruikProperties($object, $objectArray);
+            case 'B0237':
+                $objectArray = $this->getBirthProperties($object->toArray(), $objectArray);
                 break;
             default:
                 return [];
@@ -345,6 +333,55 @@ class ZgwToVrijbrpService
     }//end zgwToVrijbrpHandler()
 
     /**
+     * Todo: just re-use the zgwToVrijbrpHandler function^ but add a switch, this is a duplicate that should not exist this way.
+     *
+     * @param array $data
+     * @param array $configuration
+     *
+     * @return array
+     */
+    public function zgwToVrijbrpDocumentHandler(array $data, array $configuration): array
+    {
+        $this->configuration = $configuration;
+        $this->logger->info('Converting ZGW document to VrijBRP document');
+        if ($this->setSource() === null || $this->setMapping() === null || $this->setSynchronizationEntity() === null) {
+            return [];
+        }
+
+        $dataId = $data['object']['_self']['id'];
+
+        $this->logger->debug("(Document) Object with id $dataId was created");
+
+        $object = $this->entityManager->getRepository('App:ObjectEntity')->find($dataId);
+
+        // Do mapping with Document ObjectEntity as array.
+        $objectArray = $this->mappingService->mapping($this->mapping, $object->toArray());
+
+        // todo: make this a switch (in a function?) or something when merging all Vrijbrp Bundles:
+        $this->configuration['location'] = $this->configuration['location'].'/'.$objectArray['dossierId'].'/documents';
+        unset($objectArray['dossierId']);
+
+        // Create synchronization.
+        $synchronization = $this->syncService->findSyncByObject($object, $this->source, $this->synchronizationEntity);
+        $synchronization->setMapping($this->mapping);
+
+        // Send request to source.
+        $this->logger->debug("Synchronize (Document) Object to: {$this->source->getLocation()}{$this->configuration['location']}");
+
+        // Todo: change synchronize function so it can also push to a source and not only pull from a source:
+        // $this->syncService->synchronize($synchronization, $objectArray);
+
+        // Todo: temp way of doing this without updated synchronize() function...
+        if ($this->synchronizeTemp($synchronization, $objectArray) === [] &&
+            isset($this->symfonyStyle) === true) {
+            // Return empty array on error for when we got here through a command.
+            return [];
+        }
+
+        return $data;
+    }//end zgwToVrijbrpDocumentHandler()
+
+    /**
      * Temporary function as replacement of the $this->syncService->synchronize() function.
      * Because currently synchronize function can only pull from a source and not push to a source.
      * // Todo: temp way of doing this without updated synchronize() function...
@@ -357,7 +394,7 @@ class ZgwToVrijbrpService
     private function synchronizeTemp(Synchronization $synchronization, array $objectArray): array
     {
         $objectString = $this->syncService->getObjectString($objectArray);
-
+        $this->logger->info('Sending message with body '.$objectString);
         try {
             $result = $this->callService->call(
                 $this->source,
@@ -380,7 +417,7 @@ class ZgwToVrijbrpService
                     ],
                 ]
             );
-            $this->logger->error('Could not synchronize object. Error message: '.$exception->getMessage());
+            $this->logger->error('Could not synchronize object. Error message: '.$exception->getMessage().'\nFull Response'. ($exception instanceof ServerException||$exception instanceof ClientException||$exception instanceof RequestException === true ? $exception->getResponse()->getBody() : ''));
 
             return [];
         }//end try
