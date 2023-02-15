@@ -206,7 +206,6 @@ class ZgwToVrijbrpService
 
         $properties = ['bsn', 'gemeentecode', 'sub.telefoonnummer', 'sub.emailadres', 'geselecteerdNaamgebruik'];
         $zaakEigenschappen = $this->getZaakEigenschappen($object, $properties);
-        $output['soapenv:Body']['dien:AanvraagRequest']['dien:NaamgebruikaanvraagRequest']['naam:Contactgegevens'] = $this->getContactgegevens($zaakEigenschappen);
 
         $bsn = $this->getBsnFromRollen($object);
 
@@ -219,6 +218,7 @@ class ZgwToVrijbrpService
             'naam:BurgerservicenummerAanvrager' => $bsn,
             'naam:NaamgebruikBetrokkenen'       => $naamgebruikBetrokkenen,
         ];
+        $output['soapenv:Body']['dien:AanvraagRequest']['dien:NaamgebruikaanvraagRequest']['naam:Contactgegevens'] = $this->getContactgegevens($zaakEigenschappen);
 
         $this->mappingLogger->info('Done with additional mapping');
 
