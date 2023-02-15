@@ -18,6 +18,7 @@ use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Exception\ServerException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\Serializer\Encoder\XmlEncoder;
 
 /**
  * This Service handles the mapping and sending of ZGW zaak data to the Vrijbrp api.
@@ -205,19 +206,19 @@ class ZgwToVrijbrpService
 
         $properties = ['bsn', 'gemeentecode', 'sub.telefoonnummer', 'sub.emailadres', 'geselecteerdNaamgebruik'];
         $zaakEigenschappen = $this->getZaakEigenschappen($object, $properties);
-        $output['contactgegevens'] = $this->getContactgegevens($zaakEigenschappen);
 
         $bsn = $this->getBsnFromRollen($object);
 
-        $naamgebruikBetrokkenen[] = [
-            'burgerservicenummer' => $bsn,
-            'codeNaamgebruik'     => $zaakEigenschappen['geselecteerdNaamgebruik'],
+        $naamgebruikBetrokkenen['naam:NaamgebruikBetrokkene'] = [
+            'naam:Burgerservicenummer' => $bsn,
+            'naam:CodeNaamgebruik'     => $zaakEigenschappen['geselecteerdNaamgebruik'],
         ];
 
-        $output['aanvraaggegevens'] = [
-            'burgerservicenummerAanvrager' => $bsn,
-            'naamgebruikBetrokkenen'       => $naamgebruikBetrokkenen,
+        $output['soapenv:Body']['dien:AanvraagRequest']['dien:NaamgebruikaanvraagRequest']['naam:Aanvraaggegevens'] = [
+            'naam:BurgerservicenummerAanvrager' => $bsn,
+            'naam:NaamgebruikBetrokkenen'       => $naamgebruikBetrokkenen,
         ];
+        $output['soapenv:Body']['dien:AanvraagRequest']['dien:NaamgebruikaanvraagRequest']['naam:Contactgegevens'] = $this->getContactgegevens($zaakEigenschappen);
 
         $this->mappingLogger->info('Done with additional mapping');
 
@@ -274,10 +275,10 @@ class ZgwToVrijbrpService
     public function getContactgegevens(array $zaakEigenschappen): array
     {
         return [
-            'emailadres'           => $zaakEigenschappen['sub.emailadres'],
-            'telefoonnummerPrive'  => $zaakEigenschappen['sub.telefoonnummer'],
-            'telefoonnummerWerk'   => null,
-            'telefoonnummerMobiel' => null,
+            'com:Emailadres'           => $zaakEigenschappen['sub.emailadres'],
+            'com:TelefoonnummerPrive'  => $zaakEigenschappen['sub.telefoonnummer'],
+            'com:TelefoonnummerWerk'   => null,
+            'com:TelefoonnummerMobiel' => null,
         ];
     }//end getContactgegevens()
 
@@ -327,12 +328,13 @@ class ZgwToVrijbrpService
         // Create synchronization.
         $synchronization = $this->syncService->findSyncByObject($object, $this->source, $this->synchronizationEntity);
         $synchronization->setMapping($this->mapping);
+        $location = $this->configuration['location'] ?? '';
 
         // Send request to source.
         if (isset($this->symfonyStyle) === true) {
-            $this->symfonyStyle->comment("Synchronize (Zaak) Object to: {$this->source->getLocation()}{$this->configuration['location']}");
+            $this->symfonyStyle->comment("Synchronize (Zaak) Object to: {$this->source->getLocation()}$location");
         }
-        $this->logger->debug("Synchronize (Zaak) Object to: {$this->source->getLocation()}{$this->configuration['location']}");
+        $this->logger->debug("Synchronize (Zaak) Object to: {$this->source->getLocation()}$location");
 
         // Todo: change synchronize function so it can also push to a source and not only pull from a source:
         // $this->syncService->synchronize($synchronization, $objectArray);
@@ -359,13 +361,14 @@ class ZgwToVrijbrpService
      */
     private function synchronizeTemp(Synchronization $synchronization, array $objectArray): array
     {
-        $objectString = $this->syncService->getObjectString($objectArray);
+        $xmlEncoder = new XmlEncoder(['xml_root_node_name' => 'soapenv:Envelope']);
+        $objectString = $xmlEncoder->encode($objectArray, 'xml', ['xml_encoding' => 'utf-8', 'remove_empty_tags' => true]);
 
         $this->logger->info('Sending message with body '.$objectString);
         try {
             $result = $this->callService->call(
                 $this->source,
-                $this->configuration['location'],
+                $this->configuration['location'] ?? '',
                 'POST',
                 [
                     'body'    => $objectString,
@@ -384,15 +387,16 @@ class ZgwToVrijbrpService
                     ],
                 ]
             );
-            $this->logger->error('Could not synchronize object. Error message: '.$exception->getMessage().'\nFull Response'. ($exception instanceof ServerException||$exception instanceof ClientException||$exception instanceof RequestException === true ? $exception->getResponse()->getBody() : ''));
+            $this->logger->error('Could not synchronize object. Error message: '.$exception->getMessage().'\nFull Response'. (($exception instanceof ServerException||$exception instanceof ClientException||$exception instanceof RequestException === true) && $exception->getResponse() !== null ? $exception->getResponse()->getBody() : ''));
 
             return [];
         }//end try
+        $this->logger->info('Synchronised object, response: '.$result->getBody()->getContents());
 
         $body = $this->callService->decodeResponse($this->source, $result);
 
         $bodyDot = new Dot($body);
-        $now = new DateTime();
+        $now = new \DateTime();
         $synchronization->setLastSynced($now);
         $synchronization->setSourceLastChanged($now);
         $synchronization->setLastChecked($now);
