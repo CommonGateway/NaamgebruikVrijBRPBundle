@@ -52,6 +52,7 @@ class InstallationService implements InstallerInterface
         'CommonGateway\NaamgebruikVrijBRPBundle\ActionHandler\DocumentIdentificatieActionHandler',
         'CommonGateway\NaamgebruikVrijBRPBundle\ActionHandler\ZdsZaakActionHandler',
         'CommonGateway\NaamgebruikVrijBRPBundle\ActionHandler\ZdsDocumentActionHandler',
+        'CommonGateway\NaamgebruikVrijBRPBundle\ActionHandler\SimXmlGeheimhoudingActionHandler',
     ];
 
     /**
@@ -200,6 +201,11 @@ class InstallationService implements InstallerInterface
                 $action->setListens(['zds.inbound']);
                 $action->setConditions([
                     'var' => 'body.SOAP-ENV:Body.ns2:edcLk01',
+                ]);
+            } elseif ($schema['$id'] === 'https://simxml.nl/simxml.creergeheimhouding.handler.json') {
+                $action->setListens(['xml.inbound']);
+                $action->setConditions([
+                    'var' => 'SOAP-ENV:Envelope.SOAP-ENV:Body.ns2:OntvangenIntakeNotificatie',
                 ]);
             } else {
                 $action->setListens(['vrijbrp.default.listens']);
