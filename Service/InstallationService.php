@@ -38,6 +38,7 @@ class InstallationService implements InstallerInterface
 
     public const ENDPOINTS = [
         ['path' => 'stuf/zds', 'throws' => ['zds.inbound'], 'name' => 'zds-endpoint', 'methods' => []],
+        ['path' => 'simxml', 'throws' => ['xml.inbound'], 'name' => 'xml-endpoint', 'methods' => []],
     ];
 
     public const SOURCES = [
