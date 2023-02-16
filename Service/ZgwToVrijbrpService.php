@@ -19,6 +19,7 @@ use GuzzleHttp\Exception\ServerException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
+use CommonGateway\NaamgebruikVrijBRPBundle\Service\GeheimhoudingService;
 
 /**
  * This Service handles the mapping and sending of ZGW zaak data to the Vrijbrp api.
@@ -88,6 +89,10 @@ class ZgwToVrijbrpService
      * @var LoggerInterface
      */
     private LoggerInterface $mappingLogger;
+    /**
+     * @var GeheimhoudingService
+     */
+    private GeheimhoudingService $geheimhoudingService;
 
     /**
      * Construct a ZgwToVrijbrpService.
@@ -226,39 +231,6 @@ class ZgwToVrijbrpService
     }//end getNaamgebruikProperties()
 
     /**
-     * Maps zgw eigenschappen to vrijbrp soap geheimhouding.
-     *
-     * @param ObjectEntity $object The zgw case ObjectEntity.
-     * @param array $output The output data
-     *
-     * @return array
-     */
-    private function getGeheimhoudingProperties(ObjectEntity $object, array $output): array
-    {
-        $this->mappingLogger->info('Do additional mapping with case properties');
-
-        $properties = ['CODE_GEHEIMHOUDING', 'BSN_GEHEIMHOUDING', 'EMAILADRES', 'TELEFOONNUMMER'];
-        $zaakEigenschappen = $this->getZaakEigenschappen($object, $properties);
-
-        $bsn = $this->getBsnFromRollen($object);
-        $output['soapenv:Body']['dien:GeheimhoudingaanvraagRequest']['geh:Aanvraaggegevens']['geh:BurgerservicenummerAanvrager'] = $bsn;
-        $output['soapenv:Body']['dien:GeheimhoudingaanvraagRequest']['geh:Aanvraaggegevens']['geh:GeheimhoudingBetrokkenen'] = [
-            'geh:GeheimhoudingBetrokkene' => [
-                'geh:Burgerservicenummer' => $zaakEigenschappen['BSN_GEHEIMHOUDING'],
-                'geh:CodeGeheimhouding' => $zaakEigenschappen['CODE_GEHEIMHOUDING'],
-            ]
-        ];
-        $output['soapenv:Body']['dien:GeheimhoudingaanvraagRequest']['geh:Contactgegevens'] = [
-            'com:Emailadres' => $zaakEigenschappen['EMAILADRES'],
-            'com:TelefoonnummerPrive' => $zaakEigenschappen['TELEFOONNUMMER']
-        ];
-
-        $this->mappingLogger->info('Done with additional mapping');
-
-        return $output;
-    }//end getGeheimhoudingProperties()
-
-    /**
      * This function gets the zaakEigenschappen from the zgwZaak with the given properties (simXml elementen and Stuf extraElementen).
      *
      * @param ObjectEntity $zaakObjectEntity The zaak ObjectEntity.
@@ -355,7 +327,7 @@ class ZgwToVrijbrpService
                 $objectArray = $this->getNaamgebruikProperties($object, $objectArray);
                 break;
             case 'B0328': // Geheimhouding
-                $objectArray = $this->getGeheimhoudingProperties($object, $objectArray);
+                $objectArray = $this->geheimhoudingService->getGeheimhoudingProperties($object, $objectArray);
                 break;
             default:
                 return [];
@@ -374,6 +346,7 @@ class ZgwToVrijbrpService
 
         // Todo: change synchronize function so it can also push to a source and not only pull from a source:
         // $this->syncService->synchronize($synchronization, $objectArray);
+
 
         // Todo: temp way of doing this without updated synchronize() function...
         if ($this->synchronizeTemp($synchronization, $objectArray) === [] &&
