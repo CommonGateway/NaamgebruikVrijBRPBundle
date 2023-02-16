@@ -108,7 +108,8 @@ class ZgwToVrijbrpService
         SynchronizationService $syncService,
         MappingService $mappingService,
         LoggerInterface $actionLogger,
-        LoggerInterface $mappingLogger
+        LoggerInterface $mappingLogger,
+        GeheimhoudingService $geheimhoudingService
     ) {
         $this->entityManager = $entityManager;
         $this->callService = $callService;
@@ -116,6 +117,7 @@ class ZgwToVrijbrpService
         $this->mappingService = $mappingService;
         $this->logger = $actionLogger;
         $this->mappingLogger = $mappingLogger;
+        $this->geheimhoudingService = $geheimhoudingService;
     }//end __construct()
 
     /**

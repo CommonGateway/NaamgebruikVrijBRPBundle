@@ -1,5 +1,5 @@
 {
-  "title": "ZgwToVrijbrpNaamgebruikAction",
+  "title": "ZgwToVrijbrpSOAPGeheimhoudingAction",
   "$id": "https://vrijbrp.nl/action/vrijbrp.ZgwToVrijbrpSOAPGeheimhoudingAction.action.json",
   "$schema": "https://json-schema.org/draft/2020-12/action",
   "version": "0.0.1",
