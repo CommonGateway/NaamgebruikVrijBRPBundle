@@ -1,0 +1,17 @@
+{
+  "title": "ZgwToVrijbrp",
+  "$id": "https://vrijbrp.nl/mapping/vrijbrp.ZgwToVrijbrpSOAPGeheimhouding.mapping.json",
+  "$schema": "https://json-schema.org/draft/2020-12/mapping",
+  "version": "0.0.1",
+  "passTrough": false,
+  "mapping": {
+    "@xmlns:soapenv": "http://schemas.xmlsoap.org/soap/envelope/",
+    "@xmlns:dien": "urn:nl/procura/gba/v1.5/diensten",
+    "@xmlns:com": "urn:nl/procura/gba/v1.5/diensten/complextypes",
+    "@xmlns:naam": "urn:nl/procura/gba/v1.5/diensten/naamgebruik",
+    "soapenv:Body.dien:GeheimhoudingaanvraagRequest.geh:Zaakgegevens.com:ZaakID": "identificatie",
+    "soapenv:Body.dien:GeheimhoudingaanvraagRequest.geh:Zaakgegevens.com:Leverancier.naam": "opdrachtgevendeOrganisatie",
+    "soapenv:Body.dien:GeheimhoudingaanvraagRequest.geh:Zaakgegevens.com:DatumAanvraag": "registratiedatum",
+    "soapenv:Body.dien:GeheimhoudingaanvraagRequest.geh:Zaakgegevens.com:Toelichting": "toelichting"
+  }
+}

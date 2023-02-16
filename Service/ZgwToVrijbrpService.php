@@ -193,7 +193,7 @@ class ZgwToVrijbrpService
     }//end setSynchronizationEntity()
 
     /**
-     * Maps zgw eigenschappen to vrijbrp mapping.
+     * Maps zgw eigenschappen to vrijbrp soap naamgebruik.
      *
      * @param ObjectEntity $object The zgw case ObjectEntity.
      * @param array $output The output data
@@ -223,7 +223,40 @@ class ZgwToVrijbrpService
         $this->mappingLogger->info('Done with additional mapping');
 
         return $output;
-    }//end getSpecificProperties()
+    }//end getNaamgebruikProperties()
+
+    /**
+     * Maps zgw eigenschappen to vrijbrp soap geheimhouding.
+     *
+     * @param ObjectEntity $object The zgw case ObjectEntity.
+     * @param array $output The output data
+     *
+     * @return array
+     */
+    private function getGeheimhoudingProperties(ObjectEntity $object, array $output): array
+    {
+        $this->mappingLogger->info('Do additional mapping with case properties');
+
+        $properties = ['CODE_GEHEIMHOUDING', 'BSN_GEHEIMHOUDING', 'EMAILADRES', 'TELEFOONNUMMER'];
+        $zaakEigenschappen = $this->getZaakEigenschappen($object, $properties);
+
+        $bsn = $this->getBsnFromRollen($object);
+        $output['soapenv:Body']['dien:GeheimhoudingaanvraagRequest']['geh:Aanvraaggegevens']['geh:BurgerservicenummerAanvrager'] = $bsn;
+        $output['soapenv:Body']['dien:GeheimhoudingaanvraagRequest']['geh:Aanvraaggegevens']['geh:GeheimhoudingBetrokkenen'] = [
+            'geh:GeheimhoudingBetrokkene' => [
+                'geh:Burgerservicenummer' => $zaakEigenschappen['BSN_GEHEIMHOUDING'],
+                'geh:CodeGeheimhouding' => $zaakEigenschappen['CODE_GEHEIMHOUDING'],
+            ]
+        ];
+        $output['soapenv:Body']['dien:GeheimhoudingaanvraagRequest']['geh:Contactgegevens'] = [
+            'com:Emailadres' => $zaakEigenschappen['EMAILADRES'],
+            'com:TelefoonnummerPrive' => $zaakEigenschappen['TELEFOONNUMMER']
+        ];
+
+        $this->mappingLogger->info('Done with additional mapping');
+
+        return $output;
+    }//end getGeheimhoudingProperties()
 
     /**
      * This function gets the zaakEigenschappen from the zgwZaak with the given properties (simXml elementen and Stuf extraElementen).
@@ -318,8 +351,11 @@ class ZgwToVrijbrpService
 
         // todo: make this a function? when merging all Vrijbrp Bundles:
         switch ($zaakTypeId) {
-            case 'B0348':
+            case 'B0348': // Naamsgebruik
                 $objectArray = $this->getNaamgebruikProperties($object, $objectArray);
+                break;
+            case 'B0328': // Geheimhouding
+                $objectArray = $this->getGeheimhoudingProperties($object, $objectArray);
                 break;
             default:
                 return [];
