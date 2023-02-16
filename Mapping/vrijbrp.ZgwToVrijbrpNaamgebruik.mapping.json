@@ -2,7 +2,7 @@
   "title": "ZgwToVrijbrp",
   "$id": "https://vrijbrp.nl/mapping/vrijbrp.ZgwToVrijbrpNaamgebruik.mapping.json",
   "$schema": "https://json-schema.org/draft/2020-12/mapping",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "passTrough": false,
   "mapping": {
     "@xmlns:soapenv": "http://schemas.xmlsoap.org/soap/envelope/",
@@ -11,7 +11,7 @@
     "@xmlns:naam": "urn:nl/procura/gba/v1.5/diensten/naamgebruik",
     "soapenv:Body.dien:AanvraagRequest.dien:NaamgebruikaanvraagRequest.naam:Zaakgegevens.com:ZaakID": "identificatie",
     "soapenv:Body.dien:AanvraagRequest.dien:NaamgebruikaanvraagRequest.naam:Zaakgegevens.com:Leverancier": "opdrachtgevendeOrganisatie",
-    "soapenv:Body.dien:AanvraagRequest.dien:NaamgebruikaanvraagRequest.naam:Zaakgegevens.com:DatumAanvraag": "registratiedatum",
+    "soapenv:Body.dien:AanvraagRequest.dien:NaamgebruikaanvraagRequest.naam:Zaakgegevens.com:DatumAanvraag": "{{ \"now\"|date(\"Y-m-d\") }}",
     "soapenv:Body.dien:AanvraagRequest.dien:NaamgebruikaanvraagRequest.naam:Zaakgegevens.com:Toelichting": "toelichting"
   }
 }
