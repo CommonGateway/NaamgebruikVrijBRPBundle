@@ -8,7 +8,7 @@ use CommonGateway\NaamgebruikVrijBRPBundle\Service\SimXmlToZgwService;
 /**
  * Haalt applications op van de componenten catalogus.
  */
-class SimXmlGeheimhoudingActionHandler implements ActionHandlerInterface
+class SimXmlToZGWActionHandler implements ActionHandlerInterface
 {
     /**
      * @var SimXmlToZgwService
@@ -31,10 +31,10 @@ class SimXmlGeheimhoudingActionHandler implements ActionHandlerInterface
     public function getConfiguration(): array
     {
         return [
-            '$id'         => 'https://simxml.nl/simxml.creergeheimhouding.handler.json',
+            '$id'         => 'https://simxml.nl/simxml.creerzaak.handler.json',
             '$schema'     => 'https://json-schema.org/draft/2020-12/schema',
-            'title'       => 'SimXmlGeheimhoudingActionHandler',
-            'description' => 'This is a action to map sim xml to zgw zaak geheimhouding.',
+            'title'       => 'SimXmlToZGWActionHandler',
+            'description' => 'This is a action to map sim xml to zgw zaak.',
         ];
     }//end getConfiguration()
 
