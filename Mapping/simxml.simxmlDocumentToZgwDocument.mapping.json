@@ -5,6 +5,8 @@
   "version": "0.0.1",
   "passTrough": false,
   "mapping": {
+    "titel": "ns2:Naam",
+    "beschrijving": "ns2:Omschrijving",
     "informatieobject.identificatie": "@id",
     "informatieobject.informatieobjecttype.omschrijving": "ns2:Omschrijving",
     "informatieobject.titel": "ns2:Naam",
