@@ -11,7 +11,7 @@
     "@xmlns:naam": "urn:nl/procura/gba/v1.5/diensten/naamgebruik",
     "soapenv:Body.dien:AanvraagRequest.dien:NaamgebruikaanvraagRequest.naam:Zaakgegevens.com:ZaakID": "identificatie",
     "soapenv:Body.dien:AanvraagRequest.dien:NaamgebruikaanvraagRequest.naam:Zaakgegevens.com:Leverancier": "opdrachtgevendeOrganisatie",
-    "soapenv:Body.dien:AanvraagRequest.dien:NaamgebruikaanvraagRequest.naam:Zaakgegevens.com:DatumAanvraag": "registratiedatum",
+    "soapenv:Body.dien:AanvraagRequest.dien:NaamgebruikaanvraagRequest.naam:Zaakgegevens.com:DatumAanvraag": "{{ registratiedatum|date('Y-m-d') }}",
     "soapenv:Body.dien:AanvraagRequest.dien:NaamgebruikaanvraagRequest.naam:Zaakgegevens.com:Toelichting": "toelichting"
   }
 }

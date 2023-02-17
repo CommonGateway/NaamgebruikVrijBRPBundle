@@ -1,0 +1,17 @@
+{
+  "title": "ZgwToVrijbrpEmigratie",
+  "$id": "https://vrijbrp.nl/mapping/vrijbrp.ZgwToVrijbrpEmigratie.mapping.json",
+  "$schema": "https://json-schema.org/draft/2020-12/mapping",
+  "version": "0.0.2",
+  "passTrough": false,
+  "mapping": {
+    "@xmlns:soapenv": "http://schemas.xmlsoap.org/soap/envelope/",
+    "@xmlns:dien": "urn:nl/procura/gba/v1.5/diensten",
+    "@xmlns:com": "urn:nl/procura/gba/v1.5/diensten/complextypes",
+    "@xmlns:naam": "urn:nl/procura/gba/v1.5/diensten/emigratie",
+    "soapenv:Body.dien:EmigratieaanvraagRequest.emig:Zaakgegevens.com:ZaakID": "identificatie",
+    "soapenv:Body.dien:EmigratieaanvraagRequest.emig:Zaakgegevens.com:Leverancier": "opdrachtgevendeOrganisatie",
+    "soapenv:Body.dien:EmigratieaanvraagRequest.emig:Zaakgegevens.com:DatumAanvraag": "{{ registratiedatum|date('Y-m-d') }}",
+    "soapenv:Body.dien:EmigratieaanvraagRequest.emig:Zaakgegevens.com:Toelichting": "toelichting"
+  }
+}
