@@ -2,7 +2,7 @@
 
 namespace CommonGateway\NaamgebruikVrijBRPBundle\Command;
 
-use CommonGateway\NaamgebruikVrijBRPBundle\Service\ZgwToVrijbrpService;
+use CommonGateway\NaamgebruikVrijBRPBundle\Service\GeheimhoudingService;
 use Exception;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -23,18 +23,18 @@ class ZgwToVrijbrpGeheimhoudingCommand extends Command
     protected static $defaultName = 'vrijbrp:ZgwToVrijbrp:geheimhouding';
     
     /**
-     * @var ZgwToVrijbrpService The ZgwToVrijbrpService that will be used/tested with this command.
+     * @var GeheimhoudingService The ZgwToVrijbrpService that will be used/tested with this command.
      */
-    private ZgwToVrijbrpService $zgwToVrijbrpService;
+    private GeheimhoudingService $geheimhoudingService;
     
     /**
-     * Construct a ZgwToVrijbrpNaamgebruikCommand.
+     * Construct a ZgwToVrijbrpGeheimhoudingCommand.
      *
-     * @param ZgwToVrijbrpService $zgwToVrijbrpService The ZgwToVrijbrpService.
+     * @param GeheimhoudingService $geheimhoudingService The GeheimhoudingService.
      */
-    public function __construct(ZgwToVrijbrpService $zgwToVrijbrpService)
+    public function __construct(GeheimhoudingService $geheimhoudingService)
     {
-        $this->zgwToVrijbrpService = $zgwToVrijbrpService;
+        $this->geheimhoudingService = $geheimhoudingService;
         parent::__construct();
     }//end __construct()
     
@@ -67,7 +67,6 @@ class ZgwToVrijbrpGeheimhoudingCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $symfonyStyle = new SymfonyStyle($input, $output);
-        $this->zgwToVrijbrpService->setStyle($symfonyStyle);
         
         // Handle the command options.
         $zaakId = $input->getOption('zaak', false);
@@ -86,7 +85,7 @@ class ZgwToVrijbrpGeheimhoudingCommand extends Command
             'synchronizationEntity' => ($input->getOption('synchronizationEntity', false) ?? 'https://vng.opencatalogi.nl/schemas/zrc.zaak.schema.json'),
         ];
         
-        if ($this->zgwToVrijbrpService->zgwToVrijbrpHandler($data, $configuration) === []) {
+        if ($this->geheimhoudingService->zgwToVrijbrpHandler($data, $configuration) === []) {
             return Command::FAILURE;
         }
         
