@@ -2,7 +2,7 @@
 
 namespace CommonGateway\NaamgebruikVrijBRPBundle\Command;
 
-use CommonGateway\NaamgebruikVrijBRPBundle\Service\GeheimhoudingService;
+use CommonGateway\NaamgebruikVrijBRPBundle\Service\UittrekselService;
 use Exception;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -15,26 +15,26 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  *
  * @author Barry Brands <barry@conduction.nl>
  */
-class ZgwToVrijbrpGeheimhoudingCommand extends Command
+class ZgwToVrijbrpUittrekselCommand extends Command
 {
     /**
      * @var string The name of the command (the part after "bin/console").
      */
-    protected static $defaultName = 'vrijbrp:ZgwToVrijbrp:geheimhouding';
+    protected static $defaultName = 'vrijbrp:ZgwToVrijbrp:uittreksel';
     
     /**
-     * @var GeheimhoudingService The ZgwToVrijbrpService that will be used/tested with this command.
+     * @var UittrekselService The ZgwToVrijbrpService that will be used/tested with this command.
      */
-    private GeheimhoudingService $geheimhoudingService;
+    private UittrekselService $uittrekselService;
     
     /**
-     * Construct a ZgwToVrijbrpGeheimhoudingCommand.
+     * Construct a ZgwToVrijbrpUittrekselCommand.
      *
-     * @param GeheimhoudingService $geheimhoudingService The GeheimhoudingService.
+     * @param UittrekselService $uittrekselService The UittrekselService.
      */
-    public function __construct(GeheimhoudingService $geheimhoudingService)
+    public function __construct(UittrekselService $uittrekselService)
     {
-        $this->geheimhoudingService = $geheimhoudingService;
+        $this->uittrekselService = $uittrekselService;
         parent::__construct();
     }//end __construct()
     
@@ -46,7 +46,7 @@ class ZgwToVrijbrpGeheimhoudingCommand extends Command
     protected function configure(): void
     {
         $this
-            ->setDescription('This command triggers ZgwToVrijbrpService->zgwToVrijbrpHandler() for a geheimhouding e-dienst')
+            ->setDescription('This command triggers ZgwToVrijbrpService->zgwToVrijbrpHandler() for a uittreksel e-dienst')
             ->setHelp('This command allows you to test mapping and sending a ZGW zaak to the Vrijbrp api /dossiers')
             ->addOption('zaak', 'z', InputOption::VALUE_REQUIRED, 'The zaak uuid we should test with')
             ->addOption('source', 's', InputOption::VALUE_OPTIONAL, 'The location of the Source we will send a request to, location of an existing Source object')
@@ -71,7 +71,7 @@ class ZgwToVrijbrpGeheimhoudingCommand extends Command
         // Handle the command options.
         $zaakId = $input->getOption('zaak', false);
         if ($zaakId === false) {
-            $symfonyStyle->error('Please use vrijbrp:ZgwToVrijbrp:geheimhouding -z {uuid of a zaak}');
+            $symfonyStyle->error('Please use vrijbrp:ZgwToVrijbrp:uittreksel -z {uuid of a zaak}');
             
             return Command::FAILURE;
         }
@@ -81,11 +81,11 @@ class ZgwToVrijbrpGeheimhoudingCommand extends Command
         $configuration = [
             'source'                => ($input->getOption('source', false) ?? 'https://vrijbrp.nl/personen-zaken-ws/services'),
             'location'              => ($input->getOption('location', false) ?? ''),
-            'mapping'               => ($input->getOption('mapping', false) ?? 'https://vrijbrp.nl/mapping/vrijbrp.ZgwToVrijbrpSOAPGeheimhouding.mapping.json'),
+            'mapping'               => ($input->getOption('mapping', false) ?? 'https://vrijbrp.nl/mapping/vrijbrp.ZgwToVrijbrpSOAPUittreksel.mapping.json'),
             'synchronizationEntity' => ($input->getOption('synchronizationEntity', false) ?? 'https://vng.opencatalogi.nl/schemas/zrc.zaak.schema.json'),
         ];
         
-        if ($this->geheimhoudingService->zgwToVrijbrpHandler($data, $configuration) === []) {
+        if ($this->uittrekselService->zgwToVrijbrpHandler($data, $configuration) === []) {
             return Command::FAILURE;
         }
         

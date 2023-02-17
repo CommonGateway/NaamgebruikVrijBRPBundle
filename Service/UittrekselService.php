@@ -9,11 +9,11 @@ use Psr\Log\LoggerInterface;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
- * This Service handles the mapping of a zgw zaak for a geheimhouding to xml soap geheimhouding
+ * This Service handles the mapping of a zgw zaak for a uittreksel to xml soap uittreksel
  *
  * @author Barry Brands <barry@conduction.nl>
  */
-class GeheimhoudingService
+class UittrekselService
 {
     /**
      * @var MappingService
@@ -36,7 +36,7 @@ class GeheimhoudingService
     private EntityManagerInterface $entityManager;
 
     /**
-     * @var array Action data (ZGW Zaak for Geheimhouding)
+     * @var array Action data (ZGW Zaak for Uittreksel)
      */
     private array $data;
 
@@ -46,7 +46,7 @@ class GeheimhoudingService
     private array $configuration;
 
     /**
-     * Construct a GeheimhoudingService.
+     * Construct a UittrekselService.
      *
      * @param ZgwToVrijbrpService $zgwToVrijbrpService ZgwToVrijbrpService.
      */
@@ -61,30 +61,50 @@ class GeheimhoudingService
         $this->logger = $actionLogger;
         $this->entityManager = $entityManager;
     } //end __construct()
+    
+    /**
+     * This function gets the mee emigranten from the zgwZaak with the given properties (simXml elementen and Stuf extraElementen).
+     *
+     * @param array $zaakEigenschappen The zaak eigenschappen.
+     *
+     * @return array uittrekselBetrokkene
+     */
+    public function getUittrekselBetrokkene(array $zaakEigenschappen): array
+    {
+        $uittrekselBetrokkene = [];
+        $index = 1;
+        while (isset($zaakEigenschappen["UITTREKSELS.UITTREKSEL.$index.BSN"])) {
+            $uittrekselBetrokkene[] = [
+                'uit:UittrekselBetrokkene' => [
+                    'uit:Burgerservicenummer' => $zaakEigenschappen["UITTREKSELS.UITTREKSEL.$index.BSN"],
+                    'uit:Uittrekselcode' => $zaakEigenschappen["UITTREKSELS.UITTREKSEL.$index.CODE"],
+                    'uit:IndicatieGratis' => 'Nee'
+                ]
+            ];
+            $index++;
+        }// end while
+
+        return $uittrekselBetrokkene;
+    } //end getUittrekselBetrokkene()
 
     /**
-     * Maps zgw eigenschappen to vrijbrp soap geheimhouding.
+     * Maps zgw eigenschappen to vrijbrp soap uittreksel.
      *
      * @param ObjectEntity $object The zgw case ObjectEntity.
      * @param array $output The output data
      *
      * @return array
      */
-    public function getGeheimhoudingProperties(ObjectEntity $object, array $output): array
+    public function getUittrekselProperties(ObjectEntity $object, array $output): array
     {
         $this->logger->info('Do additional mapping with case properties');
 
-        $properties = ['CODE_GEHEIMHOUDING', 'BSN_GEHEIMHOUDING', 'EMAILADRES', 'TELEFOONNUMMER'];
+        $properties = ['all'];
         $zaakEigenschappen = $this->zgwToVrijbrpService->getZaakEigenschappen($object, $properties);
         $bsn = $this->zgwToVrijbrpService->getBsnFromRollen($object);
-        $output['soapenv:Body']['dien:GeheimhoudingaanvraagRequest']['geh:Aanvraaggegevens']['geh:BurgerservicenummerAanvrager'] = $bsn;
-        $output['soapenv:Body']['dien:GeheimhoudingaanvraagRequest']['geh:Aanvraaggegevens']['geh:GeheimhoudingBetrokkenen'] = [
-            'geh:GeheimhoudingBetrokkene' => [
-                'geh:Burgerservicenummer' => $zaakEigenschappen['BSN_GEHEIMHOUDING'],
-                'geh:CodeGeheimhouding' => $zaakEigenschappen['CODE_GEHEIMHOUDING'],
-            ]
-        ];
-        $output['soapenv:Body']['dien:GeheimhoudingaanvraagRequest']['geh:Contactgegevens'] = [
+        $output['soapenv:Body']['dien:UittrekselaanvraagRequest']['uit:Aanvraaggegevens']['uit:BurgerservicenummerAanvrager'] = $bsn;
+        $output['soapenv:Body']['dien:UittrekselaanvraagRequest']['uit:Aanvraaggegevens']['uit:UittrekselBetrokkenen'] = $this->getUittrekselBetrokkene($zaakEigenschappen);
+        $output['soapenv:Body']['dien:UittrekselaanvraagRequest']['uit:Contactgegevens'] = [
             'com:Emailadres' => $zaakEigenschappen['EMAILADRES'],
             'com:TelefoonnummerPrive' => $zaakEigenschappen['TELEFOONNUMMER']
         ];
@@ -92,13 +112,13 @@ class GeheimhoudingService
         $this->logger->info('Done with additional mapping');
 
         return $output;
-    }//end getGeheimhoudingProperties()
+    }//end getUittrekselProperties()
 
     
     /**
-     * Main function which maps and posts the xml soap geheimhouding.
+     * Main function which maps and posts the xml soap uittreksel.
      * 
-     * @var array $data          The ZGW Zaak for a geheimhouding.
+     * @var array $data          The ZGW Zaak for a uittreksel.
      * @var array $configuration The action configuration.
      *  
      * @return array $data Standard returns data the function was entered with.
@@ -131,7 +151,7 @@ class GeheimhoudingService
         $objectArray = $this->mappingService->mapping($mapping, $objectArray);
 
         $foundBody = false;
-        $objectArray = $this->getGeheimhoudingProperties($object, $objectArray, $foundBody);
+        $objectArray = $this->getUittrekselProperties($object, $objectArray, $foundBody);
 
         // Create synchronization.
         $synchronization = $this->zgwToVrijbrpService->getSynchronization($object, $source, $synchronizationEntity, $mapping);
