@@ -2,7 +2,7 @@
 
 namespace CommonGateway\NaamgebruikVrijBRPBundle\Command;
 
-use CommonGateway\NaamgebruikVrijBRPBundle\Service\ZgwToVrijbrpService;
+use CommonGateway\NaamgebruikVrijBRPBundle\Service\EmigratieService;
 use Exception;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -11,7 +11,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 /**
- * Command to execute the ZgwToVrijbrpService emigratie.
+ * Command to execute the EmigratieService.
  *
  * @author Barry Brands <barry@conduction.nl>
  */
@@ -23,18 +23,18 @@ class ZgwToVrijbrpEmigratieCommand extends Command
     protected static $defaultName = 'vrijbrp:ZgwToVrijbrp:emigratie';
     
     /**
-     * @var ZgwToVrijbrpService The ZgwToVrijbrpService that will be used/tested with this command.
+     * @var EmigratieService The EmigratieService that will be used/tested with this command.
      */
-    private ZgwToVrijbrpService $zgwToVrijbrpService;
+    private EmigratieService $emigratieService;
     
     /**
-     * Construct a ZgwToVrijbrpNaamgebruikCommand.
+     * Construct a ZgwToVrijbrpEmigratieCommand.
      *
-     * @param ZgwToVrijbrpService $zgwToVrijbrpService The ZgwToVrijbrpService.
+     * @param EmigratieService $emigratieService The EmigratieService.
      */
-    public function __construct(ZgwToVrijbrpService $zgwToVrijbrpService)
+    public function __construct(EmigratieService $emigratieService)
     {
-        $this->zgwToVrijbrpService = $zgwToVrijbrpService;
+        $this->emigratieService = $emigratieService;
         parent::__construct();
     }//end __construct()
     
@@ -67,7 +67,6 @@ class ZgwToVrijbrpEmigratieCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $symfonyStyle = new SymfonyStyle($input, $output);
-        $this->zgwToVrijbrpService->setStyle($symfonyStyle);
         
         // Handle the command options.
         $zaakId = $input->getOption('zaak', false);
@@ -86,7 +85,7 @@ class ZgwToVrijbrpEmigratieCommand extends Command
             'synchronizationEntity' => ($input->getOption('synchronizationEntity', false) ?? 'https://vng.opencatalogi.nl/schemas/zrc.zaak.schema.json'),
         ];
         
-        if ($this->zgwToVrijbrpService->zgwToVrijbrpHandler($data, $configuration) === []) {
+        if ($this->emigratieService->zgwToVrijbrpHandler($data, $configuration) === []) {
             return Command::FAILURE;
         }
         

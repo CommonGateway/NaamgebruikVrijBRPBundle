@@ -18,9 +18,6 @@ use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Exception\ServerException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\Serializer\Encoder\XmlEncoder;
-use CommonGateway\NaamgebruikVrijBRPBundle\Service\GeheimhoudingService;
-use CommonGateway\NaamgebruikVrijBRPBundle\Service\EmigratieService;
 
 /**
  * This Service handles the mapping and sending of ZGW zaak data to the Vrijbrp api.
@@ -90,17 +87,6 @@ class ZgwToVrijbrpService
      * @var LoggerInterface
      */
     private LoggerInterface $mappingLogger;
-    
-    /**
-     * @var GeheimhoudingService
-     */
-    private GeheimhoudingService $geheimhoudingService;
-
-    /**
-     * @var EmigratieService
-     */
-    private EmigratieService $emigratieService;
-
     /**
      * Construct a ZgwToVrijbrpService.
      *
@@ -123,8 +109,6 @@ class ZgwToVrijbrpService
         $this->mappingService = $mappingService;
         $this->logger = $actionLogger;
         $this->mappingLogger = $mappingLogger;
-        $this->geheimhoudingService = new GeheimhoudingService($this, $mappingLogger);
-        $this->emigratieService = new EmigratieService($this, $mappingLogger);
     } //end __construct()
 
     /**
@@ -142,6 +126,74 @@ class ZgwToVrijbrpService
 
         return $this;
     } //end setStyle()
+
+    /**
+     * Finds mapping by reference.
+     *
+     * @param string $reference The reference to look for.
+     *
+     * @return Mapping|null The resulting mapping.
+     */
+    public function getMapping(string $reference): ?Mapping
+    {
+        $reference = $this->entityManager->getRepository('App:Mapping')->findOneBy(['reference' => $reference]);
+        if ($reference instanceof Mapping === false) {
+            if (isset($this->symfonyStyle) === true) {
+                $this->symfonyStyle->error("No mapping found with reference: $reference");
+            }
+
+            $this->logger->error("No mapping found with reference: $reference");
+            return null;
+        }
+
+        return $reference;
+    }
+
+    /**
+     * Finds source by location.
+     *
+     * @TODO: convert to reference.
+     *
+     * @param string $location The location to look a source for.
+     *
+     * @return Source|null The resulting source.
+     */
+    public function getSource(string $location): ?Source
+    {
+        $source = $this->entityManager->getRepository('App:Gateway')->findOneBy(['location' => $location]);
+        if ($source instanceof Source === false) {
+            if (isset($this->symfonyStyle) === true) {
+                $this->symfonyStyle->error("No source found with location: $location");
+            }
+
+            $this->logger->error("No source found with location: $location");
+            return null;
+        }
+
+        return $source;
+    }//end getSource()
+
+    /**
+     * Finds entity by reference.
+     *
+     * @param string $reference The reference to look for.
+     *
+     * @return Entity|null The resulting entity.
+     */
+    public function getEntity(string $reference): ?Entity
+    {
+        $synchronizationEntity = $this->entityManager->getRepository('App:Entity')->findOneBy(['reference' => $reference]);
+        if ($synchronizationEntity instanceof Entity === false) {
+            if (isset($this->symfonyStyle) === true) {
+                $this->symfonyStyle->error("No entity found with reference: $reference");
+            }
+
+            $this->logger->error("No entity found with reference: $reference");
+            return null;
+        }
+
+        return $synchronizationEntity;
+    }//end setSynchronizationEntity()
 
     /**
      * Gets and sets Source object using the required configuration['source'] to find the correct Source.
@@ -257,7 +309,7 @@ class ZgwToVrijbrpService
         }
 
         return $zaakEigenschappen;
-    } //end getZaakEigenschappen()
+    }
 
     /**
      * This function gets the bsn of the rol with the betrokkeneType set as natuurlijk_persoon.
@@ -335,12 +387,6 @@ class ZgwToVrijbrpService
             case 'B0348': // Naamsgebruik
                 $objectArray = $this->getNaamgebruikProperties($object, $objectArray);
                 break;
-            case 'B0328': // Geheimhouding
-                $objectArray = $this->geheimhoudingService->getGeheimhoudingProperties($object, $objectArray);
-                break;
-            case 'B1425': // Emigratie
-                $objectArray = $this->emigratieService->getEmigratieProperties($object, $objectArray);
-                break;
             default:
                 return [];
         }
@@ -372,6 +418,14 @@ class ZgwToVrijbrpService
         return $data;
     } //end zgwToVrijbrpHandler()
 
+    public function getSynchronization(ObjectEntity $object, Source $source, Entity $synchronizationEntity, Mapping $mapping): Synchronization
+    {
+        $synchronization = $this->syncService->findSyncByObject($object, $source, $synchronizationEntity);
+        $synchronization->setMapping($mapping);
+
+        return $synchronization;
+    }
+
     /**
      * Temporary function as replacement of the $this->syncService->synchronize() function.
      * Because currently synchronize function can only pull from a source and not push to a source.
@@ -382,16 +436,17 @@ class ZgwToVrijbrpService
      *
      * @return array The response body of the outgoing call, or an empty array on error.
      */
-    private function synchronizeTemp(Synchronization $synchronization, array $objectArray): array
+    public function synchronizeTemp(Synchronization $synchronization, array $objectArray, string $location): array
     {
-        $xmlEncoder = new XmlEncoder(['xml_root_node_name' => 'soapenv:Envelope']);
-        $objectString = $xmlEncoder->encode($objectArray, 'xml', ['xml_encoding' => 'utf-8', 'remove_empty_tags' => true]);
-        $this->logger->info('Sending message with body ' . $objectString);
+        $objectString = $this->syncService->getObjectString($objectArray);
+
+        $this->logger->info('Sending message with body '.$objectString);
+
         dump($objectString);die;
         try {
             $result = $this->callService->call(
-                $this->source,
-                $this->configuration['location'] ?? '',
+                $synchronization->getSource(),
+                $location,
                 'POST',
                 [
                     'body'    => $objectString,

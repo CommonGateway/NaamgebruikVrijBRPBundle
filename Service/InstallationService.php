@@ -52,7 +52,7 @@ class InstallationService implements InstallerInterface
         'CommonGateway\NaamgebruikVrijBRPBundle\ActionHandler\DocumentIdentificatieActionHandler',
         'CommonGateway\NaamgebruikVrijBRPBundle\ActionHandler\ZdsZaakActionHandler',
         'CommonGateway\NaamgebruikVrijBRPBundle\ActionHandler\ZdsDocumentActionHandler',
-        'CommonGateway\NaamgebruikVrijBRPBundle\ActionHandler\SimXmlToZGWActionHandler',
+        'CommonGateway\NaamgebruikVrijBRPBundle\ActionHandler\ZgwToVrijbrpEmigratieActionHandler',
     ];
 
     /**

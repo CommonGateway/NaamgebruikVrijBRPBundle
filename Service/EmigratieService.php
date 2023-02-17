@@ -4,24 +4,46 @@ namespace CommonGateway\NaamgebruikVrijBRPBundle\Service;
 
 use App\Entity\ObjectEntity;
 use CommonGateway\NaamgebruikVrijBRPBundle\Service\ZgwToVrijbrpService;
+use CommonGateway\CoreBundle\Service\MappingService;
 use Psr\Log\LoggerInterface;
+use Doctrine\ORM\EntityManagerInterface;
 
 /**
- * This Service handles the mapping of the emigratie
+ * This Service handles the mapping of a zgw zaak for a emigratie to xml soap emigratie
  *
  * @author Barry Brands <barry@conduction.nl>
  */
 class EmigratieService
 {
     /**
-     * @var LoggerInterface
+     * @var MappingService
      */
-    private LoggerInterface $mappingLogger;
+    private MappingService $mappingService;
 
     /**
-     * @var ZgwToVrijbrpService SymfonyStyle for writing user feedback to console.
+     * @var LoggerInterface
+     */
+    private LoggerInterface $logger;
+
+    /**
+     * @var ZgwToVrijbrpService
      */
     private ZgwToVrijbrpService $zgwToVrijbrpService;
+
+    /**
+     * @var EntityManagerInterface
+     */
+    private EntityManagerInterface $entityManager;
+
+    /**
+     * @var array Action data (ZGW Zaak for Emigratie)
+     */
+    private array $data;
+
+    /**
+     * @var array Action configuration
+     */
+    private array $configuration;
 
     /**
      * Construct a EmigratieService.
@@ -29,11 +51,15 @@ class EmigratieService
      * @param ZgwToVrijbrpService $zgwToVrijbrpService ZgwToVrijbrpService.
      */
     public function __construct(
+        MappingService $mappingService,
         ZgwToVrijbrpService $zgwToVrijbrpService,
-        LoggerInterface $mappingLogger
+        LoggerInterface $actionLogger,
+        EntityManagerInterface $entityManager
     ) {
+        $this->mappingService = $mappingService;
         $this->zgwToVrijbrpService = $zgwToVrijbrpService;
-        $this->mappingLogger = $mappingLogger;
+        $this->logger = $actionLogger;
+        $this->entityManager = $entityManager;
     } //end __construct()
 
 
@@ -55,7 +81,7 @@ class EmigratieService
                 ]
             ];
             $index++;
-        }
+        }// end while
 
         return $meeEmigranten;
     } //end getMeeEmigranten()
@@ -64,7 +90,7 @@ class EmigratieService
     /**
      * This function gets the adressen from the zgwZaak with the given eigenschappen (simXml elementen and Stuf extraElementen).
      *
-     * @param array $zaakEigenschappen The zaak eigenschappen.
+     * @param array  $zaakEigenschappen The zaak eigenschappen.
      *
      * @return array adressen
      */
@@ -75,7 +101,7 @@ class EmigratieService
         while (isset($zaakEigenschappen["ADRESREGEL$index"])) {
             $adressen["emig:AdresBuitenland$index"] = $zaakEigenschappen["ADRESREGEL$index"];
             $index++;
-        }
+        }// end while
 
         return $adressen;
     } //end getAdressen()
@@ -83,14 +109,14 @@ class EmigratieService
     /**
      * Maps zgw eigenschappen to vrijbrp soap emigratie.
      *
-     * @param ObjectEntity $object The zgw case ObjectEntity.
+     * @param ObjectEntity  $object The zgw case ObjectEntity.
      * @param array $output The output data
      *
      * @return array
      */
     public function getEmigratieProperties(ObjectEntity $object, array $output): array
     {
-        $this->mappingLogger->info('Do additional mapping with case properties');
+        $this->logger->info('Do additional mapping with case properties');
 
         $properties = ['all'];
         $zaakEigenschappen = $this->zgwToVrijbrpService->getZaakEigenschappen($object, $properties);
@@ -105,8 +131,63 @@ class EmigratieService
         ];
         isset($zaakEigenschappen['TELEFOONNUMMER']) && $contactGegevens['com:TelefoonnummerPrive'] = $zaakEigenschappen['TELEFOONNUMMER'];
         $output['soapenv:Body']['dien:EmigratieaanvraagRequest']['emig:Contactgegevens'] = $contactGegevens;
-        $this->mappingLogger->info('Done with additional mapping');
+        $this->logger->info('Done with additional mapping');
 
         return $output;
-    } //end getGeheimhoudingProperties()
+    } //end getEmigratieProperties()
+
+    
+    /**
+     * Main function which maps and posts the xml soap emigratie.
+     * 
+     * @var array $data          The ZGW Zaak for a emigratie.
+     * @var array $configuration The action configuration.
+     *  
+     * @return array $data Standard returns data the function was entered with.
+     */
+    public function zgwToVrijbrpHandler(array $data, array $configuration): array
+    {
+        $this->logger->info('Converting ZGW object to VrijBRP');
+        $this->configuration = $configuration;
+        $this->data = $data;
+
+        $source = $this->zgwToVrijbrpService->getSource($configuration['source']);
+        $mapping = $this->zgwToVrijbrpService->getMapping($configuration['mapping']);
+        $synchronizationEntity = $this->zgwToVrijbrpService->getEntity($configuration['synchronizationEntity']);
+        if ($source === null
+            || $mapping === null
+            || $synchronizationEntity === null
+        ) {
+            return [];
+        }// end if
+
+        $dataId = $data['object']['_self']['id'];
+
+
+        $object = $this->entityManager->getRepository('App:ObjectEntity')->find($dataId);
+        $this->logger->debug("(Zaak) Object with id $dataId was created");
+
+        $objectArray = $object->toArray();
+
+        // Do mapping with Zaak ObjectEntity as array.
+        $objectArray = $this->mappingService->mapping($mapping, $objectArray);
+
+        $foundBody = false;
+        $objectArray = $this->getEmigratieProperties($object, $objectArray, $foundBody);
+
+        // Create synchronization.
+        $synchronization = $this->zgwToVrijbrpService->getSynchronization($object, $source, $synchronizationEntity, $mapping);
+
+        $this->logger->debug("Synchronize (Zaak) Object to: {$source->getLocation()}");
+        // Todo: change synchronize function so it can also push to a source and not only pull from a source:
+        // $this->syncService->synchronize($synchronization, $objectArray);
+
+        // Todo: temp way of doing this without updated synchronize() function...
+        if ($this->zgwToVrijbrpService->synchronizeTemp($synchronization, $objectArray, $source->getLocation())) {
+            // Return empty array on error for when we got here through a command.
+            return [];
+        }// end if
+
+        return $data;
+    }//end zgwToVrijbrpHandler()
 }

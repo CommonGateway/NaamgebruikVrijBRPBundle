@@ -10,10 +10,10 @@
   "conditions": {
     "==": [
       {"var": "object.zaaktype.identificatie"},
-      "B0328"
+      "B1425"
     ]
   },
-  "class": "CommonGateway\\NaamgebruikVrijBRPBundle\\ActionHandler\\ZgwToVrijbrpSOAPHandler",
+  "class": "CommonGateway\\NaamgebruikVrijBRPBundle\\ActionHandler\\ZgwToVrijbrpEmigratieHandler",
   "configuration": {
     "source": "https://vrijbrp.nl/personen-zaken-ws/services",
     "mapping": "https://vrijbrp.nl/mapping/vrijbrp.ZgwToVrijbrpSOAPEmigratie.mapping.json",
