@@ -1,0 +1,17 @@
+{
+  "title": "simxmlZaakToZgwZaakAction",
+  "$id": "https://simxml.nl/action/simxml.simxmlZaakToZgwZaakAction.action.json",
+  "$schema": "https://json-schema.org/draft/2020-12/action",
+  "version": "0.0.3",
+  "listens": [
+    "simxmlZaak.to.zgwZaak"
+  ],
+  "throws": [],
+  "conditions": {
+    "==": [1,1]
+  },
+  "class": "CommonGateway\\NaamgebruikVrijBRPBundle\\ActionHandler\\SimXmlZaakActionHandler",
+  "configuration": [],
+  "isLockable": false,
+  "isEnabled": true
+}
