@@ -2,6 +2,7 @@
 
 namespace CommonGateway\NaamgebruikVrijBRPBundle\Service;
 
+use Adbar\Dot;
 use App\Entity\Entity;
 use App\Entity\Mapping;
 use App\Entity\ObjectEntity;
@@ -146,7 +147,7 @@ class SimXmlToZgwService
         $this->logger->info('Trying to connect case type properties to existing properties');
 
         $eigenschapEntity = $this->getEntity('https://vng.opencatalogi.nl/schemas/ztc.eigenschap.schema.json');
-
+        $eigenschapObjects = [];
         foreach ($zaakArray['eigenschappen'] as $key => $eigenschap) {
             $eigenschappen = $this->cacheService->searchObjects(null, ['naam' => $eigenschap['eigenschap']['naam'], 'zaaktype' => $zaakType->getSelf()], [$eigenschapEntity->getId()->toString()])['results'];
             if ($eigenschappen !== []) {
@@ -302,6 +303,18 @@ class SimXmlToZgwService
         return $zaakArray;
     }//end convertZaakType()
 
+    public function escapeEigenschappen(array $zaakArray): array
+    {
+        foreach($zaakArray['eigenschappen'] as $key => $eigenschap) {
+            $eigenschap['naam'] = str_replace('&amp;#46;', '.', $eigenschap['naam']);
+            $eigenschap['eigenschap']['naam'] = str_replace('&#46;', '.', $eigenschap['naam']);
+        }
+
+        $zaakArray['eigenschappen'][$key] = $eigenschap;
+
+        return $zaakArray;
+    }
+
     /**
      * Receives a case and maps it to a ZGW case.
      *
@@ -315,11 +328,15 @@ class SimXmlToZgwService
         $this->logger->info('Populate case');
         $this->configuration = $config;
 
+        $elementen = new Dot($data['body']['SOAP-ENV:Body']['ns2:OntvangenIntakeNotificatie']['Body']['SIMXML']['ELEMENTEN']);
+        $data['body']['SOAP-ENV:Body']['ns2:OntvangenIntakeNotificatie']['Body']['SIMXML']['ELEMENTEN'] = $elementen->flatten();
+
         $zaakEntity = $this->getEntity('https://vng.opencatalogi.nl/schemas/zrc.zaak.schema.json');
         $mapping = $this->getMapping('https://simxml.nl/mapping/simxml.simxmlZaakToZgwZaak.mapping.json');
 
         $zaakArray = $this->mappingService->mapping($mapping, $data['body']);
 
+        $zaakArray = $this->escapeEigenschappen($zaakArray);
         $zaakArray = $this->convertZaakType($zaakArray);
 
         $zaken = $this->cacheService->searchObjects(null, ['identificatie' => $zaakArray['identificatie']], [$zaakEntity->getId()->toString()])['results'];

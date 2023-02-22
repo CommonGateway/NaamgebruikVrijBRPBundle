@@ -2,7 +2,7 @@
   "title": "SimxmlToRol",
   "$id": "https://simxml.nl/mapping/simxml.simxmlToRol.mapping.json",
   "$schema": "https://json-schema.org/draft/2020-12/mapping",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "passTrough": false,
   "mapping": {
     "betrokkeneType": "{% if METADATA.INDIENERSOORT == 'burger' %} natuurlijk_persoon {% elseif METADATA.INDIENERSOORT == 'vestiging' %} vestiging {% endif %}",
@@ -13,7 +13,7 @@
     "betrokkeneIdentificatie.voorvoegselGeslachtsnaam": "betrokkeneIdentificatie.voorvoegselGeslachtsnaam",
     "betrokkeneIdentificatie.voorletters": "{% if METADATA.INDIENERSOORT == 'burger' %}{{ELEMENTEN.VOORLETTERS}}{% else %}betrokkeneIdentificatie.voorletters{% endif %}",
     "betrokkeneIdentificatie.voornamen": "betrokkeneIdentificatie.voornamen",
-    "betrokkeneIdentificatie.geslachtaanduiding": "{% if METADATA.INDIENERSOORT == 'burger' %}{{ELEMENTEN.GESLACHT}}{% else %}betrokkeneIdentificatie.geslachtaanduiding{% endif %}",
+    "betrokkeneIdentificatie.geslachtaanduiding": "{% if METADATA.INDIENERSOORT == 'burger' %}{{ ELEMENTEN.GESLACHT|default(null) }}{% else %}betrokkeneIdentificatie.geslachtaanduiding{% endif %}",
     "betrokkeneIdentificatie.geboortedatum": "betrokkeneIdentificatie.geboortedatum",
     "betrokkeneIdentificatie.verblijfsadres.wplWoonplaatsNaam": "ELEMENTEN.WOONPLAATS",
     "betrokkeneIdentificatie.verblijfsadres.gorOpenbareRuimteNaam": "ELEMENTEN.STRAATNAAM",
