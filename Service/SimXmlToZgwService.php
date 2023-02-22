@@ -308,6 +308,7 @@ class SimXmlToZgwService
         foreach($zaakArray['eigenschappen'] as $key => $eigenschap) {
             $eigenschap['naam'] = str_replace(['&amp;#46;', '&amp;amp;#46;'], '.', $eigenschap['naam']);
             $eigenschap['eigenschap']['naam'] = str_replace(['&amp;#46;', '&amp;amp;#46;'], '.', $eigenschap['naam']);
+            $eigenschap['eigenschap']['definitie'] = str_replace(['&amp;#46;', '&amp;amp;#46;'], '.', $eigenschap['definitie']);
         }
 
         $zaakArray['eigenschappen'][$key] = $eigenschap;
