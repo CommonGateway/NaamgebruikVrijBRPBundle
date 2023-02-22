@@ -3,7 +3,6 @@
 namespace CommonGateway\NaamgebruikVrijBRPBundle\Service;
 
 use App\Entity\ObjectEntity;
-use CommonGateway\NaamgebruikVrijBRPBundle\Service\ZgwToVrijbrpService;
 use CommonGateway\CoreBundle\Service\MappingService;
 use Psr\Log\LoggerInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -61,7 +60,7 @@ class UittrekselService
         $this->logger = $actionLogger;
         $this->entityManager = $entityManager;
     } //end __construct()
-    
+
     /**
      * This function gets the mee emigranten from the zgwZaak with the given properties (simXml elementen and Stuf extraElementen).
      *
@@ -71,8 +70,21 @@ class UittrekselService
      */
     public function getUittrekselBetrokkene(array $zaakEigenschappen): array
     {
+        if(isset($zaakEigenschappen["UITTREKSELS.UITTREKSEL.BSN"])) {
+            $uittrekselBetrokkene = [
+                'uit:UittrekselBetrokkene' => [
+                    'uit:Burgerservicenummer' => $zaakEigenschappen["UITTREKSELS.UITTREKSEL.BSN"],
+                    'uit:Uittrekselcode' => $zaakEigenschappen["UITTREKSELS.UITTREKSEL.CODE"],
+                    'uit:IndicatieGratis' => 'Nee'
+                ]
+            ];
+
+            return $uittrekselBetrokkene;
+        }
+
         $uittrekselBetrokkene = [];
         $index = 1;
+
         while (isset($zaakEigenschappen["UITTREKSELS.UITTREKSEL.$index.BSN"])) {
             $uittrekselBetrokkene[] = [
                 'uit:UittrekselBetrokkene' => [
@@ -102,9 +114,9 @@ class UittrekselService
         $properties = ['all'];
         $zaakEigenschappen = $this->zgwToVrijbrpService->getZaakEigenschappen($object, $properties);
         $bsn = $this->zgwToVrijbrpService->getBsnFromRollen($object);
-        $output['soapenv:Body']['dien:UittrekselaanvraagRequest']['uit:Aanvraaggegevens']['uit:BurgerservicenummerAanvrager'] = $bsn;
-        $output['soapenv:Body']['dien:UittrekselaanvraagRequest']['uit:Aanvraaggegevens']['uit:UittrekselBetrokkenen'] = $this->getUittrekselBetrokkene($zaakEigenschappen);
-        $output['soapenv:Body']['dien:UittrekselaanvraagRequest']['uit:Contactgegevens'] = [
+        $output['soapenv:Body']['dien:AanvraagRequest']['dien:UittrekselaanvraagRequest']['uit:Aanvraaggegevens']['uit:BurgerservicenummerAanvrager'] = $bsn;
+        $output['soapenv:Body']['dien:AanvraagRequest']['dien:UittrekselaanvraagRequest']['uit:Aanvraaggegevens']['uit:UittrekselBetrokkenen'] = $this->getUittrekselBetrokkene($zaakEigenschappen);
+        $output['soapenv:Body']['dien:AanvraagRequest']['dien:UittrekselaanvraagRequest']['uit:Contactgegevens'] = [
             'com:Emailadres' => $zaakEigenschappen['EMAILADRES'],
             'com:TelefoonnummerPrive' => $zaakEigenschappen['TELEFOONNUMMER']
         ];

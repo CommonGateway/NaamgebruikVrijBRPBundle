@@ -18,6 +18,7 @@ use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Exception\ServerException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\Serializer\Encoder\XmlEncoder;
 
 /**
  * This Service handles the mapping and sending of ZGW zaak data to the Vrijbrp api.
