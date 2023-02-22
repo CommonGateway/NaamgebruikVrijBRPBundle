@@ -337,6 +337,7 @@ class SimXmlToZgwService
         $zaakArray = $this->mappingService->mapping($mapping, $data['body']);
 
         $zaakArray = $this->escapeEigenschappen($zaakArray);
+
         $zaakArray = $this->convertZaakType($zaakArray);
 
         $zaken = $this->cacheService->searchObjects(null, ['identificatie' => $zaakArray['identificatie']], [$zaakEntity->getId()->toString()])['results'];
@@ -347,7 +348,7 @@ class SimXmlToZgwService
 
             $this->entityManager->persist($zaak);
             $this->entityManager->flush();
-
+            $data['object'] = $zaak->toArray();
             $zaakArray = $this->connectZaakInformatieObjecten($zaakArray, $zaak);
 
             $this->logger->info('Created case with identifier '.$zaakArray['identificatie']);

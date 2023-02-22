@@ -438,11 +438,11 @@ class ZgwToVrijbrpService
      */
     public function synchronizeTemp(Synchronization $synchronization, array $objectArray, string $location): array
     {
-        $objectString = $this->syncService->getObjectString($objectArray);
+        $xmlEncoder = new XmlEncoder(['xml_root_node_name' => 'soapenv:Envelope']);
+        $objectString = $xmlEncoder->encode($objectArray, 'xml', ['xml_encoding' => 'utf-8', 'remove_empty_tags' => true]);
 
         $this->logger->info('Sending message with body '.$objectString);
 
-        dump($objectString);die;
         try {
             $result = $this->callService->call(
                 $synchronization->getSource(),
