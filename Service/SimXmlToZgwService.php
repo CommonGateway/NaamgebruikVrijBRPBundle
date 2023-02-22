@@ -306,12 +306,11 @@ class SimXmlToZgwService
     public function escapeEigenschappen(array $zaakArray): array
     {
         foreach($zaakArray['eigenschappen'] as $key => $eigenschap) {
-            $eigenschap['naam'] = str_replace(['&amp;#46;', '&amp;amp;#46;'], '.', $eigenschap['naam']);
-            $eigenschap['eigenschap']['naam'] = str_replace(['&amp;#46;', '&amp;amp;#46;'], '.', $eigenschap['naam']);
-            $eigenschap['eigenschap']['definitie'] = str_replace(['&amp;#46;', '&amp;amp;#46;'], '.', $eigenschap['definitie']);
+            $eigenschap['naam'] = str_replace(['&#46', '&amp;#46;', '&amp;amp;#46;'], ['.', '.', '.'], $eigenschap['naam']);
+            $eigenschap['eigenschap']['naam'] = str_replace(['&#46', '&amp;#46;', '&amp;amp;#46;'], ['.', '.', '.'], $eigenschap['eigenschap']['naam']);
+            $eigenschap['eigenschap']['definitie'] = str_replace(['&#46', '&amp;#46;', '&amp;amp;#46;'], ['.', '.', '.'], $eigenschap['eigenschap']['definitie']);
+            $zaakArray['eigenschappen'][$key] = $eigenschap;
         }
-
-        $zaakArray['eigenschappen'][$key] = $eigenschap;
 
         return $zaakArray;
     }
