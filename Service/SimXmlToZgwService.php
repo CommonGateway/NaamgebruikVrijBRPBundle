@@ -146,7 +146,7 @@ class SimXmlToZgwService
         $this->logger->info('Trying to connect case type properties to existing properties');
 
         $eigenschapEntity = $this->getEntity('https://vng.opencatalogi.nl/schemas/ztc.eigenschap.schema.json');
-        $eigenschapObjects = $zaakType->getValue('eigenschappen');
+
         foreach ($zaakArray['eigenschappen'] as $key => $eigenschap) {
             $eigenschappen = $this->cacheService->searchObjects(null, ['naam' => $eigenschap['eigenschap']['naam'], 'zaaktype' => $zaakType->getSelf()], [$eigenschapEntity->getId()->toString()])['results'];
             if ($eigenschappen !== []) {
