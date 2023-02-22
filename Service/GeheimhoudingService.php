@@ -3,7 +3,6 @@
 namespace CommonGateway\NaamgebruikVrijBRPBundle\Service;
 
 use App\Entity\ObjectEntity;
-use CommonGateway\NaamgebruikVrijBRPBundle\Service\ZgwToVrijbrpService;
 use CommonGateway\CoreBundle\Service\MappingService;
 use Psr\Log\LoggerInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -77,14 +76,14 @@ class GeheimhoudingService
         $properties = ['CODE_GEHEIMHOUDING', 'BSN_GEHEIMHOUDING', 'EMAILADRES', 'TELEFOONNUMMER'];
         $zaakEigenschappen = $this->zgwToVrijbrpService->getZaakEigenschappen($object, $properties);
         $bsn = $this->zgwToVrijbrpService->getBsnFromRollen($object);
-        $output['soapenv:Body']['dien:GeheimhoudingaanvraagRequest']['geh:Aanvraaggegevens']['geh:BurgerservicenummerAanvrager'] = $bsn;
-        $output['soapenv:Body']['dien:GeheimhoudingaanvraagRequest']['geh:Aanvraaggegevens']['geh:GeheimhoudingBetrokkenen'] = [
+        $output['soapenv:Body']['dien:AanvraagRequest']['dien:GeheimhoudingaanvraagRequest']['geh:Aanvraaggegevens']['geh:BurgerservicenummerAanvrager'] = $bsn;
+        $output['soapenv:Body']['dien:AanvraagRequest']['dien:GeheimhoudingaanvraagRequest']['geh:Aanvraaggegevens']['geh:GeheimhoudingBetrokkenen'] = [
             'geh:GeheimhoudingBetrokkene' => [
                 'geh:Burgerservicenummer' => $zaakEigenschappen['BSN_GEHEIMHOUDING'],
                 'geh:CodeGeheimhouding' => $zaakEigenschappen['CODE_GEHEIMHOUDING'],
             ]
         ];
-        $output['soapenv:Body']['dien:GeheimhoudingaanvraagRequest']['geh:Contactgegevens'] = [
+        $output['soapenv:Body']['dien:AanvraagRequest']['dien:GeheimhoudingaanvraagRequest']['geh:Contactgegevens'] = [
             'com:Emailadres' => $zaakEigenschappen['EMAILADRES'],
             'com:TelefoonnummerPrive' => $zaakEigenschappen['TELEFOONNUMMER']
         ];

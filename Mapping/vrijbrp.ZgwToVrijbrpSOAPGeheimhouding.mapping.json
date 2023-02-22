@@ -2,16 +2,16 @@
   "title": "ZgwToVrijbrpSOAPGeheimhouding",
   "$id": "https://vrijbrp.nl/mapping/vrijbrp.ZgwToVrijbrpSOAPGeheimhouding.mapping.json",
   "$schema": "https://json-schema.org/draft/2020-12/mapping",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "passTrough": false,
   "mapping": {
     "@xmlns:soapenv": "http://schemas.xmlsoap.org/soap/envelope/",
     "@xmlns:dien": "urn:nl/procura/gba/v1.5/diensten",
     "@xmlns:com": "urn:nl/procura/gba/v1.5/diensten/complextypes",
-    "@xmlns:naam": "urn:nl/procura/gba/v1.5/diensten/Geheimhouding",
-    "soapenv:Body.dien:GeheimhoudingaanvraagRequest.geh:Zaakgegevens.com:ZaakID": "identificatie",
-    "soapenv:Body.dien:GeheimhoudingaanvraagRequest.geh:Zaakgegevens.com:Leverancier": "opdrachtgevendeOrganisatie",
-    "soapenv:Body.dien:GeheimhoudingaanvraagRequest.geh:Zaakgegevens.com:DatumAanvraag": "{{ registratiedatum|date('Y-m-d') }}",
-    "soapenv:Body.dien:GeheimhoudingaanvraagRequest.geh:Zaakgegevens.com:Toelichting": "toelichting"
+    "@xmlns:geh": "urn:nl/procura/gba/v1.5/diensten/Geheimhouding",
+    "soapenv:Body.dien:AanvraagRequest.dien:GeheimhoudingaanvraagRequest.geh:Zaakgegevens.com:ZaakID": "identificatie",
+    "soapenv:Body.dien:AanvraagRequest.dien:GeheimhoudingaanvraagRequest.geh:Zaakgegevens.com:Leverancier": "opdrachtgevendeOrganisatie",
+    "soapenv:Body.dien:AanvraagRequest.dien:GeheimhoudingaanvraagRequest.geh:Zaakgegevens.com:DatumAanvraag": "{{ 'now'|date('Y-m-d') }}",
+    "soapenv:Body.dien:AanvraagRequest.dien:GeheimhoudingaanvraagRequest.geh:Zaakgegevens.com:Toelichting": "toelichting"
   }
 }
