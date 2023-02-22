@@ -54,6 +54,7 @@ class InstallationService implements InstallerInterface
         'CommonGateway\NaamgebruikVrijBRPBundle\ActionHandler\ZdsDocumentActionHandler',
         'CommonGateway\NaamgebruikVrijBRPBundle\ActionHandler\ZgwToVrijbrpGeheimhoudingActionHandler',
         'CommonGateway\NaamgebruikVrijBRPBundle\ActionHandler\ZgwToVrijbrpUittrekselActionHandler',
+        'CommonGateway\NaamgebruikVrijBRPBundle\ActionHandler\ZgwToVrijbrpEmigratieActionHandler',
     ];
 
     /**
