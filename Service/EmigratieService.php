@@ -72,6 +72,14 @@ class EmigratieService
      */
     public function getMeeEmigranten(array $zaakEigenschappen): array
     {
+        if (isset($zaakEigenschappen["MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.BSN"])) {
+            return [
+                'MeeEmigrant' => [
+                    'emig:Burgerservicenummer' => $zaakEigenschappen["MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.BSN"]
+                ]
+            ];
+        }// end if
+
         $meeEmigranten = [];
         $index = 1;
         while (isset($zaakEigenschappen["MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.$index.BSN"])) {
@@ -121,16 +129,16 @@ class EmigratieService
         $properties = ['all'];
         $zaakEigenschappen = $this->zgwToVrijbrpService->getZaakEigenschappen($object, $properties);
         $bsn = $this->zgwToVrijbrpService->getBsnFromRollen($object);
-        $output['soapenv:Body']['dien:EmigratieaanvraagRequest']['emig:Aanvraaggegevens']['emig:BurgerservicenummerAanvrager'] = $bsn;
-        $output['soapenv:Body']['dien:EmigratieaanvraagRequest']['emig:Aanvraaggegevens']['emig:AdresBuitenland'] = $this->getAdressen($zaakEigenschappen);
-        $output['soapenv:Body']['dien:EmigratieaanvraagRequest']['emig:Aanvraaggegevens']['emig:MeeEmigranten'] = $this->getMeeEmigranten($zaakEigenschappen);
-        $output['soapenv:Body']['dien:EmigratieaanvraagRequest']['emig:Aanvraaggegevens']['emig:LandcodeEmigratie'] = $zaakEigenschappen['LANDCODE'];
-        $output['soapenv:Body']['dien:EmigratieaanvraagRequest']['emig:Aanvraaggegevens']['emig:Emigratiedatum'] = $zaakEigenschappen['DATUM_VERTREK'];
+        $output['soapenv:Body']['dien:AanvraagRequest']['dien:EmigratieaanvraagRequest']['emig:Aanvraaggegevens']['emig:BurgerservicenummerAanvrager'] = $bsn;
+        $output['soapenv:Body']['dien:AanvraagRequest']['dien:EmigratieaanvraagRequest']['emig:Aanvraaggegevens']['emig:AdresBuitenland'] = $this->getAdressen($zaakEigenschappen);
+        $output['soapenv:Body']['dien:AanvraagRequest']['dien:EmigratieaanvraagRequest']['emig:Aanvraaggegevens']['emig:MeeEmigranten'] = $this->getMeeEmigranten($zaakEigenschappen);
+        $output['soapenv:Body']['dien:AanvraagRequest']['dien:EmigratieaanvraagRequest']['emig:Aanvraaggegevens']['emig:LandcodeEmigratie'] = $zaakEigenschappen['LANDCODE'];
+        $output['soapenv:Body']['dien:AanvraagRequest']['dien:EmigratieaanvraagRequest']['emig:Aanvraaggegevens']['emig:Emigratiedatum'] = $zaakEigenschappen['DATUM_VERTREK'];
         $contactGegevens = [
             'com:Emailadres' => $zaakEigenschappen['EMAILADRES']
         ];
         isset($zaakEigenschappen['TELEFOONNUMMER']) && $contactGegevens['com:TelefoonnummerPrive'] = $zaakEigenschappen['TELEFOONNUMMER'];
-        $output['soapenv:Body']['dien:EmigratieaanvraagRequest']['emig:Contactgegevens'] = $contactGegevens;
+        $output['soapenv:Body']['dien:AanvraagRequest']['dien:EmigratieaanvraagRequest']['emig:Contactgegevens'] = $contactGegevens;
         $this->logger->info('Done with additional mapping');
 
         return $output;
