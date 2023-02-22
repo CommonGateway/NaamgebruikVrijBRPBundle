@@ -130,10 +130,10 @@ class EmigratieService
         $zaakEigenschappen = $this->zgwToVrijbrpService->getZaakEigenschappen($object, $properties);
         $bsn = $this->zgwToVrijbrpService->getBsnFromRollen($object);
         $output['soapenv:Body']['dien:AanvraagRequest']['dien:EmigratieaanvraagRequest']['emig:Aanvraaggegevens']['emig:BurgerservicenummerAanvrager'] = $bsn;
+        $output['soapenv:Body']['dien:AanvraagRequest']['dien:EmigratieaanvraagRequest']['emig:Aanvraaggegevens']['emig:Emigratiedatum'] = $zaakEigenschappen['DATUM_VERTREK'];
+        $output['soapenv:Body']['dien:AanvraagRequest']['dien:EmigratieaanvraagRequest']['emig:Aanvraaggegevens']['emig:LandcodeEmigratie'] = $zaakEigenschappen['LANDCODE'];
         $output['soapenv:Body']['dien:AanvraagRequest']['dien:EmigratieaanvraagRequest']['emig:Aanvraaggegevens']['emig:AdresBuitenland'] = $this->getAdressen($zaakEigenschappen);
         $output['soapenv:Body']['dien:AanvraagRequest']['dien:EmigratieaanvraagRequest']['emig:Aanvraaggegevens']['emig:MeeEmigranten'] = $this->getMeeEmigranten($zaakEigenschappen);
-        $output['soapenv:Body']['dien:AanvraagRequest']['dien:EmigratieaanvraagRequest']['emig:Aanvraaggegevens']['emig:LandcodeEmigratie'] = $zaakEigenschappen['LANDCODE'];
-        $output['soapenv:Body']['dien:AanvraagRequest']['dien:EmigratieaanvraagRequest']['emig:Aanvraaggegevens']['emig:Emigratiedatum'] = $zaakEigenschappen['DATUM_VERTREK'];
         $contactGegevens = [
             'com:Emailadres' => $zaakEigenschappen['EMAILADRES']
         ];
