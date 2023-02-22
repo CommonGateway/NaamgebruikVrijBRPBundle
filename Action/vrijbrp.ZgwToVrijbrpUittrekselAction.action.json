@@ -2,7 +2,7 @@
   "title": "ZgwToVrijbrpUittrekselAction",
   "$id": "https://vrijbrp.nl/action/vrijbrp.ZgwToVrijbrpUittrekselAction.action.json",
   "$schema": "https://json-schema.org/draft/2020-12/action",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "listens": [
     "vrijbrp.zaak.created"
   ],
@@ -13,7 +13,7 @@
       "B0255"
     ]
   },
-  "class": "CommonGateway\\NaamgebruikVrijBRPBundle\\ActionHandler\\ZgwToVrijbrpSOAPHandler",
+  "class": "CommonGateway\\NaamgebruikVrijBRPBundle\\ActionHandler\\ZgwToVrijbrpUittrekselActionHandler",
   "configuration": {
     "source": "https://vrijbrp.nl/personen-zaken-ws/services",
     "mapping": "https://vrijbrp.nl/mapping/vrijbrp.ZgwToVrijbrpUittreksel.mapping.json",
