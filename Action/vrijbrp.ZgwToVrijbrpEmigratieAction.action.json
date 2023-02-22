@@ -2,7 +2,7 @@
   "title": "ZgwToVrijbrpSOAPEmigratieAction",
   "$id": "https://vrijbrp.nl/action/vrijbrp.ZgwToVrijbrpSOAPEmigratieAction.action.json",
   "$schema": "https://json-schema.org/draft/2020-12/action",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "listens": [
     "vrijbrp.zaak.created"
   ],
@@ -16,7 +16,7 @@
   "class": "CommonGateway\\NaamgebruikVrijBRPBundle\\ActionHandler\\ZgwToVrijbrpEmigratieActionHandler",
   "configuration": {
     "source": "https://vrijbrp.nl/personen-zaken-ws/services",
-    "mapping": "https://vrijbrp.nl/mapping/vrijbrp.ZgwToVrijbrpSOAPEmigratie.mapping.json",
+    "mapping": "https://vrijbrp.nl/mapping/vrijbrp.ZgwToVrijbrpEmigratie.mapping.json",
     "synchronizationEntity": "https://vng.opencatalogi.nl/schemas/zrc.zaak.schema.json"
   },
   "isLockable": false,
