@@ -310,7 +310,7 @@ class ZgwToVrijbrpService
         }
 
         return $zaakEigenschappen;
-    }
+    }//end getZaakEigenschappen()
 
     /**
      * This function gets the bsn of the rol with the betrokkeneType set as natuurlijk_persoon.
@@ -425,7 +425,7 @@ class ZgwToVrijbrpService
         $synchronization->setMapping($mapping);
 
         return $synchronization;
-    }
+    }//end getSynchronization()
 
     /**
      * Temporary function as replacement of the $this->syncService->synchronize() function.

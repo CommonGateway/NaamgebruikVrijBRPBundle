@@ -303,7 +303,14 @@ class SimXmlToZgwService
         return $zaakArray;
     }//end convertZaakType()
 
-    public function escapeEigenschappen(array $zaakArray): array
+    /**
+     * Unescapes dots in eigenschap-names and definition.
+     *
+     * @param array $zaakArray The case aray to unescape.
+     *
+     * @return array The unescaped array.
+     */
+    public function unescapeEigenschappen(array $zaakArray): array
     {
         foreach($zaakArray['eigenschappen'] as $key => $eigenschap) {
             $eigenschap['naam'] = str_replace(['&#46', '&amp;#46;', '&amp;amp;#46;'], ['.', '.', '.'], $eigenschap['naam']);
@@ -313,7 +320,7 @@ class SimXmlToZgwService
         }
 
         return $zaakArray;
-    }
+    }//end unescapeEigenschappen()
 
     /**
      * Receives a case and maps it to a ZGW case.
@@ -336,7 +343,7 @@ class SimXmlToZgwService
 
         $zaakArray = $this->mappingService->mapping($mapping, $data['body']);
 
-        $zaakArray = $this->escapeEigenschappen($zaakArray);
+        $zaakArray = $this->unescapeEigenschappen($zaakArray);
 
         $zaakArray = $this->convertZaakType($zaakArray);
 
