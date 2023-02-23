@@ -2,16 +2,12 @@
   "title": "ZgwZaakToBv03",
   "$id": "https://simxml.nl/mapping/simxml.zgwZaakToBv03.mapping.json",
   "$schema": "https://json-schema.org/draft/2020-12/mapping",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "passTrough": false,
   "mapping": {
-    "@xmlns:SOAP-ENV": "http://schemas.xmlsoap.org/soap/envelope/",
-    "SOAP-ENV:Body.StUF:Bv03Bericht.@xmlns:StUF": "http://www.egem.nl/StUF/StUF0301",
-    "SOAP-ENV:Body.StUF:Bv03Bericht.StUF:stuurgegevens.StUF:berichtcode": "Bv03",
-    "SOAP-ENV:Body.StUF:Bv03Bericht.StUF:stuurgegevens.StUF:zender.StUF:applicatie": "CommonGateway",
-    "SOAP-ENV:Body.StUF:Bv03Bericht.StUF:stuurgegevens.StUF:ontvanger.StUF:applicatie": "SIMform",
-    "SOAP-ENV:Body.StUF:Bv03Bericht.StUF:stuurgegevens.StUF:referentienummer": "identificatie",
-    "SOAP-ENV:Body.StUF:Bv03Bericht.StUF:stuurgegevens.StUF:tijdstipbericht": "datum",
-    "SOAP-ENV:Body.StUF:Bv03Bericht.StUF:stuurgegevens.StUF:crossRefnummer": "identificatie"
+    "@xmlns:xsd": "http://www.w3.org/2001/XMLSchema",
+    "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
+    "@ENV": "http://schemas.xmlsoap.org/soap/envelope/",
+    "SOAP-ENV:Body.OntvangenIntakeAntwoord": null
   }
 }
