@@ -104,12 +104,9 @@ class EmigratieService
      */
     public function getAdressen(array $zaakEigenschappen): array
     {
-        $adressen = [];
-        $index = 1;
-        while (isset($zaakEigenschappen["ADRESREGEL$index"])) {
-            $adressen["emig:AdresBuitenland$index"] = $zaakEigenschappen["ADRESREGEL$index"];
-            $index++;
-        }// end while
+        $adressen["emig:AdresBuitenland1"] = $zaakEigenschappen["ADRESREGEL1"] ?? "";
+        $adressen["emig:AdresBuitenland2"] = $zaakEigenschappen["ADRESREGEL2"] ?? "";
+        $adressen["emig:AdresBuitenland3"] = $zaakEigenschappen["ADRESREGEL3"] ?? "";
 
         return $adressen;
     } //end getAdressen()
