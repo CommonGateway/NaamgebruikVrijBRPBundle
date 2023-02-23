@@ -409,7 +409,7 @@ class ZgwToVrijbrpService
 
         // Todo: temp way of doing this without updated synchronize() function...
         if (
-            $this->synchronizeTemp($synchronization, $objectArray) === [] &&
+            $this->synchronizeTemp($synchronization, $objectArray, '') === [] &&
             isset($this->symfonyStyle) === true
         ) {
             // Return empty array on error for when we got here through a command.

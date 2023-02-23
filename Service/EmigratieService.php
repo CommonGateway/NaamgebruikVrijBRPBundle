@@ -193,7 +193,7 @@ class EmigratieService
         // $this->syncService->synchronize($synchronization, $objectArray);
 
         // Todo: temp way of doing this without updated synchronize() function...
-        if ($this->zgwToVrijbrpService->synchronizeTemp($synchronization, $objectArray, $source->getLocation())) {
+        if ($this->zgwToVrijbrpService->synchronizeTemp($synchronization, $objectArray, '')) {
             // Return empty array on error for when we got here through a command.
             return [];
         }// end if
