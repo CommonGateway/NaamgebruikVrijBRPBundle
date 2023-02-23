@@ -88,7 +88,6 @@ class ZgwToVrijbrpService
      * @var LoggerInterface
      */
     private LoggerInterface $mappingLogger;
-
     /**
      * Construct a ZgwToVrijbrpService.
      *
@@ -111,7 +110,7 @@ class ZgwToVrijbrpService
         $this->mappingService = $mappingService;
         $this->logger = $actionLogger;
         $this->mappingLogger = $mappingLogger;
-    }//end __construct()
+    } //end __construct()
 
     /**
      * Set symfony style in order to output to the console when running the handler function through a command.
@@ -127,7 +126,75 @@ class ZgwToVrijbrpService
         $this->mappingService->setStyle($symfonyStyle);
 
         return $this;
-    }//end setStyle()
+    } //end setStyle()
+
+    /**
+     * Finds mapping by reference.
+     *
+     * @param string $reference The reference to look for.
+     *
+     * @return Mapping|null The resulting mapping.
+     */
+    public function getMapping(string $reference): ?Mapping
+    {
+        $reference = $this->entityManager->getRepository('App:Mapping')->findOneBy(['reference' => $reference]);
+        if ($reference instanceof Mapping === false) {
+            if (isset($this->symfonyStyle) === true) {
+                $this->symfonyStyle->error("No mapping found with reference: $reference");
+            }
+
+            $this->logger->error("No mapping found with reference: $reference");
+            return null;
+        }
+
+        return $reference;
+    }
+
+    /**
+     * Finds source by location.
+     *
+     * @TODO: convert to reference.
+     *
+     * @param string $location The location to look a source for.
+     *
+     * @return Source|null The resulting source.
+     */
+    public function getSource(string $location): ?Source
+    {
+        $source = $this->entityManager->getRepository('App:Gateway')->findOneBy(['location' => $location]);
+        if ($source instanceof Source === false) {
+            if (isset($this->symfonyStyle) === true) {
+                $this->symfonyStyle->error("No source found with location: $location");
+            }
+
+            $this->logger->error("No source found with location: $location");
+            return null;
+        }
+
+        return $source;
+    }//end getSource()
+
+    /**
+     * Finds entity by reference.
+     *
+     * @param string $reference The reference to look for.
+     *
+     * @return Entity|null The resulting entity.
+     */
+    public function getEntity(string $reference): ?Entity
+    {
+        $synchronizationEntity = $this->entityManager->getRepository('App:Entity')->findOneBy(['reference' => $reference]);
+        if ($synchronizationEntity instanceof Entity === false) {
+            if (isset($this->symfonyStyle) === true) {
+                $this->symfonyStyle->error("No entity found with reference: $reference");
+            }
+
+            $this->logger->error("No entity found with reference: $reference");
+            return null;
+        }
+
+        return $synchronizationEntity;
+    }//end setSynchronizationEntity()
 
     /**
      * Gets and sets Source object using the required configuration['source'] to find the correct Source.
@@ -150,7 +217,7 @@ class ZgwToVrijbrpService
         }
 
         return $this->source;
-    }//end setSource()
+    } //end setSource()
 
     /**
      * Gets and sets a Mapping object using the required configuration['mapping'] to find the correct Mapping.
@@ -170,7 +237,7 @@ class ZgwToVrijbrpService
         }
 
         return $this->mapping;
-    }//end setMapping()
+    } //end setMapping()
 
     /**
      * Gets and sets a synchronizationEntity object using the required configuration['synchronizationEntity'] to find the correct Entity.
@@ -190,10 +257,10 @@ class ZgwToVrijbrpService
         }
 
         return $this->synchronizationEntity;
-    }//end setSynchronizationEntity()
+    } //end setSynchronizationEntity()
 
     /**
-     * Maps zgw eigenschappen to vrijbrp mapping.
+     * Maps zgw eigenschappen to vrijbrp soap naamgebruik.
      *
      * @param ObjectEntity $object The zgw case ObjectEntity.
      * @param array $output The output data
@@ -223,13 +290,13 @@ class ZgwToVrijbrpService
         $this->mappingLogger->info('Done with additional mapping');
 
         return $output;
-    }//end getSpecificProperties()
+    } //end getNaamgebruikProperties()
 
     /**
      * This function gets the zaakEigenschappen from the zgwZaak with the given properties (simXml elementen and Stuf extraElementen).
      *
      * @param ObjectEntity $zaakObjectEntity The zaak ObjectEntity.
-     * @param array        $properties The properties / eigenschappen we want to get.
+     * @param array        $properties       The properties / eigenschappen we want to get.
      *
      * @return array zaakEigenschappen
      */
@@ -237,7 +304,7 @@ class ZgwToVrijbrpService
     {
         $zaakEigenschappen = [];
         foreach ($zaakObjectEntity->getValue('eigenschappen') as $eigenschap) {
-            if (in_array($eigenschap->getValue('naam'), $properties)) {
+            if (in_array($eigenschap->getValue('naam'), $properties) || in_array('all', $properties)) {
                 $zaakEigenschappen[$eigenschap->getValue('naam')] = $eigenschap->getValue('waarde');
             }
         }
@@ -263,7 +330,7 @@ class ZgwToVrijbrpService
         }
 
         return null;
-    }//end getBsnFromRollen()
+    } //end getBsnFromRollen()
 
     /**
      * Creates a VrijRBP Soap Contactgegevens array with the data of the zgwZaak.
@@ -280,7 +347,7 @@ class ZgwToVrijbrpService
             'com:TelefoonnummerWerk'   => null,
             'com:TelefoonnummerMobiel' => null,
         ];
-    }//end getContactgegevens()
+    } //end getContactgegevens()
 
     /**
      * Handles a ZgwToVrijBrp action.
@@ -318,7 +385,7 @@ class ZgwToVrijbrpService
 
         // todo: make this a function? when merging all Vrijbrp Bundles:
         switch ($zaakTypeId) {
-            case 'B0348':
+            case 'B0348': // Naamsgebruik
                 $objectArray = $this->getNaamgebruikProperties($object, $objectArray);
                 break;
             default:
@@ -339,15 +406,26 @@ class ZgwToVrijbrpService
         // Todo: change synchronize function so it can also push to a source and not only pull from a source:
         // $this->syncService->synchronize($synchronization, $objectArray);
 
+
         // Todo: temp way of doing this without updated synchronize() function...
-        if ($this->synchronizeTemp($synchronization, $objectArray) === [] &&
-            isset($this->symfonyStyle) === true) {
+        if (
+            $this->synchronizeTemp($synchronization, $objectArray, '') === [] &&
+            isset($this->symfonyStyle) === true
+        ) {
             // Return empty array on error for when we got here through a command.
             return [];
         }
 
         return $data;
-    }//end zgwToVrijbrpHandler()
+    } //end zgwToVrijbrpHandler()
+
+    public function getSynchronization(ObjectEntity $object, Source $source, Entity $synchronizationEntity, Mapping $mapping): Synchronization
+    {
+        $synchronization = $this->syncService->findSyncByObject($object, $source, $synchronizationEntity);
+        $synchronization->setMapping($mapping);
+
+        return $synchronization;
+    }//end getSynchronization()
 
     /**
      * Temporary function as replacement of the $this->syncService->synchronize() function.
@@ -359,16 +437,18 @@ class ZgwToVrijbrpService
      *
      * @return array The response body of the outgoing call, or an empty array on error.
      */
-    private function synchronizeTemp(Synchronization $synchronization, array $objectArray): array
+    public function synchronizeTemp(Synchronization $synchronization, array $objectArray, string $location): array
     {
         $xmlEncoder = new XmlEncoder(['xml_root_node_name' => 'soapenv:Envelope']);
         $objectString = $xmlEncoder->encode($objectArray, 'xml', ['xml_encoding' => 'utf-8', 'remove_empty_tags' => true]);
 
+
         $this->logger->info('Sending message with body '.$objectString);
+
         try {
             $result = $this->callService->call(
-                $this->source,
-                $this->configuration['location'] ?? '',
+                $synchronization->getSource(),
+                $location,
                 'POST',
                 [
                     'body'    => $objectString,
@@ -376,7 +456,7 @@ class ZgwToVrijbrpService
                     //'headers' => [],
                 ]
             );
-        } catch (Exception|GuzzleException $exception) {
+        } catch (Exception | GuzzleException $exception) {
             $this->syncService->ioCatchException(
                 $exception,
                 [
@@ -387,11 +467,11 @@ class ZgwToVrijbrpService
                     ],
                 ]
             );
-            $this->logger->error('Could not synchronize object. Error message: '.$exception->getMessage().'\nFull Response'. (($exception instanceof ServerException||$exception instanceof ClientException||$exception instanceof RequestException === true) && $exception->getResponse() !== null ? $exception->getResponse()->getBody() : ''));
+            $this->logger->error('Could not synchronize object. Error message: ' . $exception->getMessage() . '\nFull Response' . (($exception instanceof ServerException || $exception instanceof ClientException || $exception instanceof RequestException === true) && $exception->getResponse() !== null ? $exception->getResponse()->getBody() : ''));
 
             return [];
-        }//end try
-        $this->logger->info('Synchronised object, response: '.$result->getBody()->getContents());
+        } //end try
+        $this->logger->info('Synchronised object, response: ' . $result->getBody()->getContents());
 
         $body = $this->callService->decodeResponse($this->source, $result);
 
@@ -403,5 +483,5 @@ class ZgwToVrijbrpService
         $synchronization->setHash(hash('sha384', serialize($bodyDot->jsonSerialize())));
 
         return $body;
-    }//end synchronizeTemp()
+    } //end synchronizeTemp()
 }

@@ -1,0 +1,17 @@
+{
+  "title": "ZgwToVrijbrpUittreksel",
+  "$id": "https://vrijbrp.nl/mapping/vrijbrp.ZgwToVrijbrpUittreksel.mapping.json",
+  "$schema": "https://json-schema.org/draft/2020-12/mapping",
+  "version": "0.0.4",
+  "passTrough": false,
+  "mapping": {
+    "@xmlns:soapenv": "http://schemas.xmlsoap.org/soap/envelope/",
+    "@xmlns:dien": "urn:nl/procura/gba/v1.5/diensten",
+    "@xmlns:com": "urn:nl/procura/gba/v1.5/diensten/complextypes",
+    "@xmlns:uit": "urn:nl/procura/gba/v1.5/diensten/uittreksel",
+    "soapenv:Body.dien:AanvraagRequest.dien:UittrekselaanvraagRequest.uit:Zaakgegevens.com:ZaakID": "identificatie",
+    "soapenv:Body.dien:AanvraagRequest.dien:UittrekselaanvraagRequest.uit:Zaakgegevens.com:Leverancier": "opdrachtgevendeOrganisatie",
+    "soapenv:Body.dien:AanvraagRequest.dien:UittrekselaanvraagRequest.uit:Zaakgegevens.com:DatumAanvraag": "{{ registratiedatum|date('Y-m-d') }}",
+    "soapenv:Body.dien:AanvraagRequest.dien:UittrekselaanvraagRequest.uit:Zaakgegevens.com:Toelichting": "toelichting"
+  }
+}
