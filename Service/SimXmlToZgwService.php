@@ -322,6 +322,11 @@ class SimXmlToZgwService
         return $zaakArray;
     }//end unescapeEigenschappen()
 
+    public function throwDocumentEvent(ObjectEntity $zaakInfoObject): void
+    {
+
+    }
+
     /**
      * Receives a case and maps it to a ZGW case.
      *
