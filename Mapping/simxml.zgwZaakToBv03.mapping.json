@@ -2,12 +2,12 @@
   "title": "ZgwZaakToBv03",
   "$id": "https://simxml.nl/mapping/simxml.zgwZaakToBv03.mapping.json",
   "$schema": "https://json-schema.org/draft/2020-12/mapping",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "passTrough": false,
   "mapping": {
     "@xmlns:xsd": "http://www.w3.org/2001/XMLSchema",
     "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
     "@ENV": "http://schemas.xmlsoap.org/soap/envelope/",
-    "SOAP-ENV:Body.OntvangenIntakeAntwoord": null
+    "SOAP-ENV:Body.OntvangenIntakeAntwoord": ""
   }
 }
