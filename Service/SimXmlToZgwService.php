@@ -6,9 +6,11 @@ use Adbar\Dot;
 use App\Entity\Entity;
 use App\Entity\Mapping;
 use App\Entity\ObjectEntity;
+use App\Event\ActionEvent;
 use CommonGateway\CoreBundle\Service\CacheService;
 use CommonGateway\CoreBundle\Service\MappingService;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\HttpFoundation\Response;
@@ -46,25 +48,33 @@ class SimXmlToZgwService
     private LoggerInterface $logger;
 
     /**
+     * @var EventDispatcherInterface
+     */
+    private EventDispatcherInterface $eventDispatcher;
+
+    /**
      * @var array
      */
     private array $configuration;
 
     /**
-     * @param EntityManagerInterface $entityManager  The Entity Manager
-     * @param MappingService         $mappingService The MappingService
-     * @param CacheService           $cacheService   The CacheService
+     * @param EntityManagerInterface   $entityManager  The Entity Manager
+     * @param MappingService           $mappingService The MappingService
+     * @param CacheService             $cacheService   The CacheService
+     * @param EventDispatcherInterface $eventDispatcher The event dispatcher
      */
     public function __construct(
         EntityManagerInterface $entityManager,
         MappingService $mappingService,
         CacheService $cacheService,
-        LoggerInterface $actionLogger
+        LoggerInterface $actionLogger,
+        EventDispatcherInterface $eventDispatcher
     ) {
         $this->entityManager = $entityManager;
         $this->mappingService = $mappingService;
         $this->cacheService = $cacheService;
         $this->logger = $actionLogger;
+        $this->eventDispatcher = $eventDispatcher;
     }//end __construct()
 
     /**
@@ -322,10 +332,20 @@ class SimXmlToZgwService
         return $zaakArray;
     }//end unescapeEigenschappen()
 
-    public function throwDocumentEvent(ObjectEntity $zaakInfoObject): void
+    /**
+     * Throw the document events for created documents.
+     *
+     * @param array $zaakArray The case array containing the documents.
+     *
+     * @return void
+     */
+    public function throwDocumentEvent(array $zaakArray): void
     {
-
-    }
+        foreach($zaakArray['zaakinformatieobjecten'] as $zaakInformatieObject) {
+            $event = new ActionEvent('commongateway.action.event', ['object' => $zaakInfoObject], 'vrijbrp.zaak.document.created');
+            $this->eventDispatcher->dispatch($event, 'commongateway.action.event');
+        }
+    }//end throwDocumentEvent()
 
     /**
      * Receives a case and maps it to a ZGW case.
@@ -370,6 +390,8 @@ class SimXmlToZgwService
             $this->logger->warning('Case with identifier '.$zaakArray['identificatie'].' found, returning bad request error');
             $data['response'] = $this->createResponse(['Error' => 'The case with id '.$zaakArray['identificatie'].' already exists'], 400);
         }//end if
+
+        $this->throwDocumentEvent($zaak->toArray());
 
         return $data;
     }//end zaakActionHandler()
