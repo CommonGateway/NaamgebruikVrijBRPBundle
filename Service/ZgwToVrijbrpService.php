@@ -473,7 +473,7 @@ class ZgwToVrijbrpService
         } //end try
         $this->logger->info('Synchronised object, response: ' . $result->getBody()->getContents());
 
-        $body = $this->callService->decodeResponse($this->source, $result);
+        $body = $this->callService->decodeResponse($synchronization->getSource(), $result);
 
         $bodyDot = new Dot($body);
         $now = new \DateTime();
