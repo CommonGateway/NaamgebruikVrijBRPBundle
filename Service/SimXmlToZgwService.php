@@ -55,6 +55,11 @@ class SimXmlToZgwService
     /**
      * @var array
      */
+    private array $data;
+
+    /**
+     * @var array
+     */
     private array $configuration;
 
     /**
@@ -265,6 +270,8 @@ class SimXmlToZgwService
                 $this->entityManager->persist($zaakInformatieObject);
                 $this->entityManager->flush();
 
+                $this->data['documents'][] = $zaakInformatieObject->toArray();
+
             } else {
                 $this->logger->warning('The case with id '.$zaakArray['informatieobject']['identificatie'].' does not exist');
                 $data['response'] = $this->createResponse(['Error' => 'The case with id '.$zaakArray['informatieobject']['identificatie'].' does not exist'], 400);
@@ -333,21 +340,6 @@ class SimXmlToZgwService
     }//end unescapeEigenschappen()
 
     /**
-     * Throw the document events for created documents.
-     *
-     * @param array $zaakArray The case array containing the documents.
-     *
-     * @return void
-     */
-    public function throwDocumentEvent(array $zaakArray): void
-    {
-        foreach($zaakArray['zaakinformatieobjecten'] as $zaakInformatieObject) {
-            $event = new ActionEvent('commongateway.action.event', ['object' => $zaakInfoObject], 'vrijbrp.zaak.document.created');
-            $this->eventDispatcher->dispatch($event, 'commongateway.action.event');
-        }
-    }//end throwDocumentEvent()
-
-    /**
      * Receives a case and maps it to a ZGW case.
      *
      * @param array $data   The inbound data for the case
@@ -359,14 +351,15 @@ class SimXmlToZgwService
     {
         $this->logger->info('Populate case');
         $this->configuration = $config;
+        $this->data = $data;
 
-        $elementen = new Dot($data['body']['SOAP-ENV:Body']['ns2:OntvangenIntakeNotificatie']['Body']['SIMXML']['ELEMENTEN']);
-        $data['body']['SOAP-ENV:Body']['ns2:OntvangenIntakeNotificatie']['Body']['SIMXML']['ELEMENTEN'] = $elementen->flatten();
+        $elementen = new Dot($this->data['body']['SOAP-ENV:Body']['ns2:OntvangenIntakeNotificatie']['Body']['SIMXML']['ELEMENTEN']);
+        $this->data['body']['SOAP-ENV:Body']['ns2:OntvangenIntakeNotificatie']['Body']['SIMXML']['ELEMENTEN'] = $elementen->flatten();
 
         $zaakEntity = $this->getEntity('https://vng.opencatalogi.nl/schemas/zrc.zaak.schema.json');
         $mapping = $this->getMapping('https://simxml.nl/mapping/simxml.simxmlZaakToZgwZaak.mapping.json');
 
-        $zaakArray = $this->mappingService->mapping($mapping, $data['body']);
+        $zaakArray = $this->mappingService->mapping($mapping, $this->data['body']);
 
         $zaakArray = $this->unescapeEigenschappen($zaakArray);
 
@@ -380,19 +373,17 @@ class SimXmlToZgwService
 
             $this->entityManager->persist($zaak);
             $this->entityManager->flush();
-            $data['object'] = $zaak->toArray();
+            $this->data['object'] = $zaak->toArray();
             $zaakArray = $this->connectZaakInformatieObjecten($zaakArray, $zaak);
 
             $this->logger->info('Created case with identifier '.$zaakArray['identificatie']);
             $mappingOut = $this->getMapping('https://simxml.nl/mapping/simxml.zgwZaakToBv03.mapping.json');
-            $data['response'] = $this->createResponse($this->mappingService->mapping($mappingOut, $zaak->toArray()), 200);
+            $this->data['response'] = $this->createResponse($this->mappingService->mapping($mappingOut, $zaak->toArray()), 200);
         } else {
             $this->logger->warning('Case with identifier '.$zaakArray['identificatie'].' found, returning bad request error');
-            $data['response'] = $this->createResponse(['Error' => 'The case with id '.$zaakArray['identificatie'].' already exists'], 400);
+            $this->data['response'] = $this->createResponse(['Error' => 'The case with id '.$zaakArray['identificatie'].' already exists'], 400);
         }//end if
 
-        $this->throwDocumentEvent($zaak->toArray());
-
-        return $data;
+        return $this->data;
     }//end zaakActionHandler()
 }
