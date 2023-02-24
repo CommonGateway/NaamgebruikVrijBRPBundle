@@ -72,20 +72,33 @@ class EmigratieService
      */
     public function getMeeEmigranten(array $zaakEigenschappen): array
     {
+        $meeEmigranten = [];
+        $meeEmigranten[] = [
+            'MeeEmigrant' => [
+                'emig:Burgerservicenummer' => $zaakEigenschappen["BSN"],
+                'emig:OmschrijvingAangifte' => 'G',
+                'emig:Duur' => 'l'
+            ]
+        ];
+
         if (isset($zaakEigenschappen["MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.BSN"])) {
-            return [
+            $meeEmigranten[] = [
                 'MeeEmigrant' => [
-                    'emig:Burgerservicenummer' => $zaakEigenschappen["MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.BSN"]
+                    'emig:Burgerservicenummer' => $zaakEigenschappen["MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.BSN"],
+                    'emig:OmschrijvingAangifte' => $zaakEigenschappen['MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.ROL'],
+                    'emig:Duur' => 'l'
                 ]
             ];
+            return $meeEmigranten;
         }// end if
 
-        $meeEmigranten = [];
         $index = 1;
         while (isset($zaakEigenschappen["MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.$index.BSN"])) {
             $meeEmigranten[] = [
                 'MeeEmigrant' => [
-                    'emig:Burgerservicenummer' => $zaakEigenschappen["MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.$index.BSN"]
+                    'emig:Burgerservicenummer' => $zaakEigenschappen["MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.$index.BSN"],
+                    'emig:OmschrijvingAangifte' => $zaakEigenschappen["MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.$index.rol"],
+                    'emig:Duur' => 'l'
                 ]
             ];
             $index++;
@@ -134,7 +147,8 @@ class EmigratieService
             'emig:MeeEmigranten' => $this->getMeeEmigranten($zaakEigenschappen)
         ];
         $contactGegevens = [
-            'com:Emailadres' => $zaakEigenschappen['EMAILADRES']
+            'com:Emailadres' => $zaakEigenschappen['EMAILADRES'],
+            'com:TelefoonnummerPrive' => $zaakEigenschappen['TELEFOONNUMMER']
         ];
         isset($zaakEigenschappen['TELEFOONNUMMER']) && $contactGegevens['com:TelefoonnummerPrive'] = $zaakEigenschappen['TELEFOONNUMMER'];
         $output['soapenv:Body']['dien:AanvraagRequest']['dien:EmigratieaanvraagRequest']['emig:Contactgegevens'] = $contactGegevens;
