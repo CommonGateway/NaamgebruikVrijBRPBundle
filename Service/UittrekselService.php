@@ -75,7 +75,7 @@ class UittrekselService
                 'uit:UittrekselBetrokkene' => [
                     'uit:Burgerservicenummer' => $zaakEigenschappen["UITTREKSELS.UITTREKSEL.BSN"],
                     'uit:Uittrekselcode' => $zaakEigenschappen["UITTREKSELS.UITTREKSEL.CODE"],
-                    'uit:IndicatieGratis' => 'True'
+                    'uit:IndicatieGratis' => 'true'
                 ]
             ];
 
@@ -90,7 +90,7 @@ class UittrekselService
                 'uit:UittrekselBetrokkene' => [
                     'uit:Burgerservicenummer' => $zaakEigenschappen["UITTREKSELS.UITTREKSEL.$index.BSN"],
                     'uit:Uittrekselcode' => $zaakEigenschappen["UITTREKSELS.UITTREKSEL.$index.CODE"],
-                    'uit:IndicatieGratis' => 'True'
+                    'uit:IndicatieGratis' => 'true'
                 ]
             ];
             $index++;
