@@ -74,7 +74,7 @@ class EmigratieService
     {
         $meeEmigranten = [];
         $meeEmigranten[] = [
-            'MeeEmigrant' => [
+            'emig:MeeEmigrant' => [
                 'emig:Burgerservicenummer' => $zaakEigenschappen["BSN"],
                 'emig:OmschrijvingAangifte' => 'G',
                 'emig:Duur' => 'l'
@@ -83,7 +83,7 @@ class EmigratieService
 
         if (isset($zaakEigenschappen["MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.BSN"])) {
             $meeEmigranten[] = [
-                'MeeEmigrant' => [
+                'emig:MeeEmigrant' => [
                     'emig:Burgerservicenummer' => $zaakEigenschappen["MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.BSN"],
                     'emig:OmschrijvingAangifte' => $zaakEigenschappen['MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.ROL'],
                     'emig:Duur' => 'l'
@@ -95,7 +95,7 @@ class EmigratieService
         $index = 1;
         while (isset($zaakEigenschappen["MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.$index.BSN"])) {
             $meeEmigranten[] = [
-                'MeeEmigrant' => [
+                'emig:MeeEmigrant' => [
                     'emig:Burgerservicenummer' => $zaakEigenschappen["MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.$index.BSN"],
                     'emig:OmschrijvingAangifte' => $zaakEigenschappen["MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.$index.rol"],
                     'emig:Duur' => 'l'
