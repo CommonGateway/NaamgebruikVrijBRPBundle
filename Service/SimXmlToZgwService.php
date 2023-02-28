@@ -145,8 +145,8 @@ class SimXmlToZgwService
         $this->logger->debug('Creating XML response');
         $xmlEncoder = new XmlEncoder(['xml_root_node_name' => 'SOAP-ENV:Envelope']);
         $contentString = $xmlEncoder->encode($content, 'xml', ['xml_encoding' => 'utf-8', 'remove_empty_tags' => true]);
-        
-        return new Response($contentString, $status, ['Content-Type' => 'text/xml']);
+
+        return new Response($contentString, $status, ['Content-Type' => 'application/soap+xml']);
     }//end createResponse()
 
     /**
