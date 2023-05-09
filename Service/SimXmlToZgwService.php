@@ -186,9 +186,6 @@ class SimXmlToZgwService
 
         $this->logger->info('Connected case properties to case type properties');
 
-        $this->entityManager->persist($zaakType);
-        $this->entityManager->flush();
-
         return $zaakArray;
     }//end connectEigenschappen()
 
@@ -228,9 +225,6 @@ class SimXmlToZgwService
         $zaakType->hydrate(['roltypen' => $rolTypeObjects]);
 
         $this->logger->info('Connected roles to role types');
-
-        $this->entityManager->persist($zaakType);
-        $this->entityManager->flush();
 
         return $zaakArray;
     }//end connectRolTypes()
