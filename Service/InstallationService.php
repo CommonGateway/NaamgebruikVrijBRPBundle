@@ -44,7 +44,7 @@ class InstallationService implements InstallerInterface
     public const SOURCES = [
         ['name'             => 'vrijbrp-soap', 'location' => 'https://vrijbrp.nl/personen-zaken-ws/services', 'auth' => 'vrijbrp-jwt',
             'username'      => 'sim-!ChangeMe!', 'password' => '!secret-ChangeMe!', 'accept' => 'application/json',
-            'configuration' => ['verify' => false], ],
+            'configuration' => ['verify' => false], 'reference' => 'https://vrijbrp.nl/source/vrijbrp.soap.source.json'],
     ];
 
     public const ACTION_HANDLERS = [
@@ -339,11 +339,15 @@ class InstallationService implements InstallerInterface
         $sources = [];
 
         foreach ($createSources as $createSource) {
-            if ($sourceRepository->findOneBy(['name' => $createSource['name']]) instanceof Source === false) {
+            if ($sourceRepository->findOneBy(['reference' => $createSource['reference']]) instanceof Source === false) {
                 $source = new Source($createSource);
+                $source->setName($createSource['name']);
+                $source->setReference($createSource['reference']);
                 if (array_key_exists('password', $createSource) === true) {
                     $source->setPassword($createSource['password']);
                 }
+    
+                $source->setHeaders(['Content-Type' => $createSource['accept']]);
 
                 $this->entityManager->persist($source);
                 $this->entityManager->flush();

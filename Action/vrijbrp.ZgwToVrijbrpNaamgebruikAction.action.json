@@ -15,7 +15,7 @@
   },
   "class": "CommonGateway\\NaamgebruikVrijBRPBundle\\ActionHandler\\ZgwToVrijbrpHandler",
   "configuration": {
-    "source": "https://vrijbrp.nl/personen-zaken-ws/services",
+    "source": "https://vrijbrp.nl/source/vrijbrp.soap.source.json",
     "mapping": "https://vrijbrp.nl/mapping/vrijbrp.ZgwToVrijbrpNaamgebruik.mapping.json",
     "synchronizationEntity": "https://vng.opencatalogi.nl/schemas/zrc.zaak.schema.json"
   },
