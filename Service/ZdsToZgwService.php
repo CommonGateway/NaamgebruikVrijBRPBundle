@@ -8,6 +8,7 @@ use App\Entity\ObjectEntity;
 use CommonGateway\CoreBundle\Service\CacheService;
 use CommonGateway\CoreBundle\Service\MappingService;
 use App\Service\ObjectEntityService;
+use CommonGateway\CoreBundle\Service\SchemaService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
@@ -43,12 +44,14 @@ class ZdsToZgwService
      * @var LoggerInterface
      */
     private LoggerInterface $logger;
-    private ObjectEntityService $objectEntityService;
 
     /**
      * @var array
      */
     private array $configuration;
+
+    private ObjectEntityService $objectEntityService;
+    private SchemaService $schemaService;
 
     /**
      * @param EntityManagerInterface $entityManager  The Entity Manager
@@ -60,13 +63,15 @@ class ZdsToZgwService
         MappingService $mappingService,
         CacheService $cacheService,
         LoggerInterface $actionLogger,
-        ObjectEntityService $objectEntityService
+        ObjectEntityService $objectEntityService,
+        SchemaService $schemaService
     ) {
         $this->entityManager = $entityManager;
         $this->mappingService = $mappingService;
         $this->cacheService = $cacheService;
         $this->logger = $actionLogger;
         $this->objectEntityService = $objectEntityService;
+        $this->schemaService = $schemaService;
     }//end __construct()
 
     /**
@@ -151,13 +156,16 @@ class ZdsToZgwService
 
         $zaakEntity = $this->getEntity('https://vng.opencatalogi.nl/schemas/zrc.zaak.schema.json');
         $mapping = $this->getMapping('https://zds.nl/mapping/zds.zdsZaakIdToZgwZaak.mapping.json');
+        if ($zaakEntity === null || $mapping === null) {
+            return $data;
+        }
 
         $zaakArray = $this->mappingService->mapping($mapping, $data['body']);
         $zaken = $this->cacheService->searchObjects(null, ['identificatie' => $zaakArray['identificatie']], [$zaakEntity->getId()->toString()])['results'];
         if ($zaken === []) {
             $this->logger->debug('Creating new case with identifier'.$zaakArray['identificatie']);
             $zaak = new ObjectEntity($zaakEntity);
-            $zaak->hydrate($zaakArray);
+            $this->schemaService->hydrate($zaak, $zaakArray);
 
             $this->entityManager->persist($zaak);
             $this->entityManager->flush();
@@ -195,7 +203,7 @@ class ZdsToZgwService
         if ($documents === []) {
             $this->logger->debug('Creating new document for identification'.$documentArray['identificatie']);
             $document = new ObjectEntity($documentEntity);
-            $document->hydrate($documentArray);
+            $this->schemaService->hydrate($document, $documentArray);
 
             $this->entityManager->persist($document);
             $this->entityManager->flush();
@@ -224,6 +232,7 @@ class ZdsToZgwService
         $this->logger->info('Trying to connect case type properties to existing properties');
 
         $eigenschapEntity = $this->getEntity('https://vng.opencatalogi.nl/schemas/ztc.eigenschap.schema.json');
+        $eigenschapObjects = [];
         foreach ($zaakArray['eigenschappen'] as $key => $eigenschap) {
             $eigenschappen = $this->cacheService->searchObjects(null, ['naam' => $eigenschap['eigenschap']['naam'], 'zaaktype' => $zaakType->getSelf()], [$eigenschapEntity->getId()->toString()])['results'];
             if ($eigenschappen !== []) {
@@ -235,15 +244,15 @@ class ZdsToZgwService
 
                 $eigenschapObject = new ObjectEntity($eigenschapEntity);
                 $eigenschap['eigenschap']['zaaktype'] = $zaakType->getSelf();
-                $eigenschapObject->hydrate($eigenschap['eigenschap']);
+                $this->schemaService->hydrate($eigenschapObject, $eigenschap['eigenschap']);
 
                 $this->entityManager->persist($eigenschapObject);
                 $this->entityManager->flush();
-                $eigenschapObjects[] = $zaakArray['eigenschappen'][$key]['eigenschap'] = $eigenschapObject->getId()->toString();
+                $eigenschapObjects[] = $zaakArray['eigenschappen'][$key]['eigenschap'] = $eigenschapObject;
             }//end if
         }//end foreach
 
-        $zaakType->hydrate(['eigenschappen' => $eigenschapObjects]);
+        $this->schemaService->hydrate($zaakType, ['eigenschappen' => $eigenschapObjects]);
 
         $this->logger->info('Connected case properties to case type properties');
 
@@ -274,7 +283,7 @@ class ZdsToZgwService
                 $this->logger->debug('No existing role type has been found, creating new role type');
                 $rolType = new ObjectEntity($rolTypeEntity);
                 $role['roltype']['zaaktype'] = $zaakType->getSelf();
-                $rolType->hydrate($role['roltype']);
+                $this->schemaService->hydrate($rolType, $role['roltype']);
 
                 $this->entityManager->persist($rolType);
                 $this->entityManager->flush();
@@ -283,7 +292,7 @@ class ZdsToZgwService
             }//end if
         }//end foreach
 
-        $zaakType->hydrate(['roltypen' => $rolTypeObjects]);
+        $this->schemaService->hydrate($zaakType, ['roltypen' => $rolTypeObjects]);
 
         $this->logger->info('Connected roles to role types');
 
@@ -312,7 +321,7 @@ class ZdsToZgwService
             $this->logger->debug('No existing case type found, creating new case type');
 
             $zaaktype = new ObjectEntity($zaakTypeEntity);
-            $zaaktype->hydrate($zaakArray['zaaktype']);
+            $this->schemaService->hydrate($zaaktype, $zaakArray['zaaktype']);
 
             $this->entityManager->persist($zaaktype);
             $this->entityManager->flush();
@@ -353,7 +362,7 @@ class ZdsToZgwService
             $this->logger->debug('Populating case with identification '.$zaakArray['identificatie']);
 
             $zaak = $this->entityManager->find('App:ObjectEntity', $zaken[0]['_self']['id']);
-            $zaak->hydrate($zaakArray);
+            $this->schemaService->hydrate($zaak, $zaakArray);
 
             $this->entityManager->persist($zaak);
             $this->entityManager->flush();
@@ -402,12 +411,12 @@ class ZdsToZgwService
             $this->logger->debug('Populating document with identification'.$zaakDocumentArray['informatieobject']['identificatie']);
 
             $informatieobject = $this->entityManager->find('App:ObjectEntity', $documenten[0]['_self']['id']);
-            $informatieobject->hydrate($zaakDocumentArray['informatieobject']);
+            $this->schemaService->hydrate($informatieobject, $zaakDocumentArray['informatieobject']);
             $this->entityManager->persist($informatieobject);
             $this->entityManager->flush();
 
             $zaakInformatieObject = new ObjectEntity($zaakDocumentEntity);
-            $zaakInformatieObject->hydrate(['zaak' => $zaken[0]['_self']['id'], 'informatieobject' => $informatieobject->getId()->toString()]);
+            $this->schemaService->hydrate($zaakInformatieObject, ['zaak' => $zaken[0]['_self']['id'], 'informatieobject' => $informatieobject->getId()->toString()]);
 
             $this->entityManager->persist($zaakInformatieObject);
             $this->entityManager->flush();

@@ -9,6 +9,7 @@ use App\Entity\ObjectEntity;
 use App\Event\ActionEvent;
 use CommonGateway\CoreBundle\Service\CacheService;
 use CommonGateway\CoreBundle\Service\MappingService;
+use CommonGateway\CoreBundle\Service\SchemaService;
 use App\Service\ObjectEntityService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
@@ -53,6 +54,7 @@ class SimXmlToZgwService
      */
     private EventDispatcherInterface $eventDispatcher;
     private ObjectEntityService $objectEntityService;
+    private SchemaService $schemaService;
 
     /**
      * @var array
@@ -76,7 +78,8 @@ class SimXmlToZgwService
         CacheService $cacheService,
         LoggerInterface $actionLogger,
         EventDispatcherInterface $eventDispatcher,
-        ObjectEntityService $objectEntityService
+        ObjectEntityService $objectEntityService,
+        SchemaService $schemaService
     ) {
         $this->entityManager = $entityManager;
         $this->mappingService = $mappingService;
@@ -84,6 +87,7 @@ class SimXmlToZgwService
         $this->logger = $actionLogger;
         $this->eventDispatcher = $eventDispatcher;
         $this->objectEntityService = $objectEntityService;
+        $this->schemaService = $schemaService;
     }//end __construct()
 
     /**
@@ -178,7 +182,7 @@ class SimXmlToZgwService
 
                 $eigenschapObject = new ObjectEntity($eigenschapEntity);
                 $eigenschap['eigenschap']['zaaktype'] = $zaakType->getSelf();
-                $eigenschapObject->hydrate($eigenschap['eigenschap']);
+                $this->schemaService->hydrate($eigenschapObject, $eigenschap['eigenschap']);
 
                 $this->entityManager->persist($eigenschapObject);
                 $this->entityManager->flush();
@@ -186,7 +190,7 @@ class SimXmlToZgwService
             }//end if
         }//end foreach
 
-        $zaakType->hydrate(['eigenschappen' => $eigenschapObjects]);
+        $this->schemaService->hydrate($zaakType, ['eigenschappen' => $eigenschapObjects]);
 
         $this->logger->info('Connected case properties to case type properties');
 
@@ -217,7 +221,7 @@ class SimXmlToZgwService
                 $this->logger->debug('No existing role type has been found, creating new role type');
                 $rolType = new ObjectEntity($rolTypeEntity);
                 $role['roltype']['zaaktype'] = $zaakType->getSelf();
-                $rolType->hydrate($role['roltype']);
+                $this->schemaService->hydrate($rolType, $role['roltype']);
 
                 $this->entityManager->persist($rolType);
                 $this->entityManager->flush();
@@ -226,7 +230,7 @@ class SimXmlToZgwService
             }//end if
         }//end foreach
 
-        $zaakType->hydrate(['roltypen' => $rolTypeObjects]);
+        $this->schemaService->hydrate($zaakType, ['roltypen' => $rolTypeObjects]);
 
         $this->logger->info('Connected roles to role types');
 
@@ -264,7 +268,7 @@ class SimXmlToZgwService
 
                 $this->logger->info('Connected document to zaak');
 
-                $zaakInformatieObject->hydrate(['zaak' => $zaak, 'informatieobject' => $informatieobject->getId()->toString()]);
+                $this->schemaService->hydrate($zaakInformatieObject, ['zaak' => $zaak, 'informatieobject' => $informatieobject->getId()->toString()]);
                 $this->entityManager->persist($zaakInformatieObject);
                 $this->entityManager->flush();
 
@@ -302,7 +306,7 @@ class SimXmlToZgwService
             $this->logger->debug('No existing case type found, creating new case type');
 
             $zaaktype = new ObjectEntity($zaakTypeEntity);
-            $zaaktype->hydrate($zaakArray['zaaktype']);
+            $this->schemaService->hydrate($zaaktype, $zaakArray['zaaktype']);
 
             $this->entityManager->persist($zaaktype);
             $this->entityManager->flush();
@@ -367,7 +371,7 @@ class SimXmlToZgwService
         if ($zaken === []) {
             $this->logger->debug('Creating new case with identifier'.$zaakArray['identificatie']);
             $zaak = new ObjectEntity($zaakEntity);
-            $zaak->hydrate($zaakArray);
+            $this->schemaService->hydrate($zaak, $zaakArray);
 
             $this->entityManager->persist($zaak);
             $this->entityManager->flush();
