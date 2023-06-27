@@ -4,7 +4,7 @@ namespace CommonGateway\NaamgebruikVrijBRPBundle\Service;
 
 use App\Entity\ObjectEntity;
 use CommonGateway\CoreBundle\Service\MappingService;
-use CommonGateway\CoreBundle\Service\ObjectEntityService;
+use App\Service\ObjectEntityService;
 use Psr\Log\LoggerInterface;
 use Doctrine\ORM\EntityManagerInterface;
 
