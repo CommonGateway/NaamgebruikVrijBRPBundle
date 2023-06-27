@@ -5,6 +5,7 @@ namespace CommonGateway\NaamgebruikVrijBRPBundle\Service;
 use App\Entity\ObjectEntity;
 use CommonGateway\NaamgebruikVrijBRPBundle\Service\ZgwToVrijbrpService;
 use CommonGateway\CoreBundle\Service\MappingService;
+use CommonGateway\CoreBundle\Service\ObjectEntityService;
 use Psr\Log\LoggerInterface;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -45,6 +46,8 @@ class EmigratieService
      */
     private array $configuration;
 
+    private ObjectEntityService $objectEntityService;
+
     /**
      * Construct a EmigratieService.
      *
@@ -54,12 +57,14 @@ class EmigratieService
         MappingService $mappingService,
         ZgwToVrijbrpService $zgwToVrijbrpService,
         LoggerInterface $actionLogger,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        ObjectEntityService $objectEntityService
     ) {
         $this->mappingService = $mappingService;
         $this->zgwToVrijbrpService = $zgwToVrijbrpService;
         $this->logger = $actionLogger;
         $this->entityManager = $entityManager;
+        $this->objectEntityService = $objectEntityService;
     } //end __construct()
 
 
@@ -188,7 +193,7 @@ class EmigratieService
         $object = $this->entityManager->getRepository('App:ObjectEntity')->find($dataId);
         $this->logger->debug("(Zaak) Object with id $dataId was created");
 
-        $objectArray = $object->toArray();
+        $objectArray = $this->objectEntityService->toArray($object);
 
         // Do mapping with Zaak ObjectEntity as array.
         $objectArray = $this->mappingService->mapping($mapping, $objectArray);

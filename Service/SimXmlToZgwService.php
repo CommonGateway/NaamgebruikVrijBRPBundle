@@ -9,6 +9,7 @@ use App\Entity\ObjectEntity;
 use App\Event\ActionEvent;
 use CommonGateway\CoreBundle\Service\CacheService;
 use CommonGateway\CoreBundle\Service\MappingService;
+use CommonGateway\CoreBundle\Service\ObjectEntityService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
@@ -51,6 +52,7 @@ class SimXmlToZgwService
      * @var EventDispatcherInterface
      */
     private EventDispatcherInterface $eventDispatcher;
+    private ObjectEntityService $objectEntityService;
 
     /**
      * @var array
@@ -73,13 +75,15 @@ class SimXmlToZgwService
         MappingService $mappingService,
         CacheService $cacheService,
         LoggerInterface $actionLogger,
-        EventDispatcherInterface $eventDispatcher
+        EventDispatcherInterface $eventDispatcher,
+        ObjectEntityService $objectEntityService
     ) {
         $this->entityManager = $entityManager;
         $this->mappingService = $mappingService;
         $this->cacheService = $cacheService;
         $this->logger = $actionLogger;
         $this->eventDispatcher = $eventDispatcher;
+        $this->objectEntityService = $objectEntityService;
     }//end __construct()
 
     /**
@@ -264,7 +268,7 @@ class SimXmlToZgwService
                 $this->entityManager->persist($zaakInformatieObject);
                 $this->entityManager->flush();
 
-                $this->data['documents'][] = $zaakInformatieObject->toArray();
+                $this->data['documents'][] = $this->objectEntityService->toArray($zaakInformatieObject);
 
             } else {
                 $this->logger->warning('The case with id '.$zaakArray['informatieobject']['identificatie'].' does not exist');
@@ -306,7 +310,7 @@ class SimXmlToZgwService
             $zaakArray['zaaktype'] = $zaaktype->getId()->toString();
         }//end if
 
-        $this->logger->info('Case connected to case type with identification'.$zaaktype->toArray()['identificatie']);
+        $this->logger->info('Case connected to case type with identification'.$this->objectEntityService->toArray($zaaktype)['identificatie']);
 
         $zaakArray = $this->connectEigenschappen($zaakArray, $zaaktype);
         $zaakArray = $this->connectRolTypes($zaakArray, $zaaktype);
@@ -367,12 +371,12 @@ class SimXmlToZgwService
 
             $this->entityManager->persist($zaak);
             $this->entityManager->flush();
-            $this->data['object'] = $zaak->toArray();
+            $this->data['object'] = $this->objectEntityService->toArray($zaak);
             $zaakArray = $this->connectZaakInformatieObjecten($zaakArray, $zaak);
 
             $this->logger->info('Created case with identifier '.$zaakArray['identificatie']);
             $mappingOut = $this->getMapping('https://simxml.nl/mapping/simxml.zgwZaakToBv03.mapping.json');
-            $this->data['response'] = $this->createResponse($this->mappingService->mapping($mappingOut, $zaak->toArray()), 200);
+            $this->data['response'] = $this->createResponse($this->mappingService->mapping($mappingOut, $this->objectEntityService->toArray($zaak)), 200);
         } else {
             $this->logger->warning('Case with identifier '.$zaakArray['identificatie'].' found, returning bad request error');
             $this->data['response'] = $this->createResponse(['Error' => 'The case with id '.$zaakArray['identificatie'].' already exists'], 400);

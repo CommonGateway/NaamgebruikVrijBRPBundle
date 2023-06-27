@@ -11,6 +11,7 @@ use App\Entity\Synchronization;
 use App\Service\SynchronizationService;
 use CommonGateway\CoreBundle\Service\CallService;
 use CommonGateway\CoreBundle\Service\MappingService;
+use CommonGateway\CoreBundle\Service\ObjectEntityService;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use GuzzleHttp\Exception\ClientException;
@@ -53,6 +54,7 @@ class ZgwToVrijbrpService
      * @var SymfonyStyle SymfonyStyle for writing user feedback to console.
      */
     private SymfonyStyle $symfonyStyle;
+    private ObjectEntityService $objectEntityService;
 
     /**
      * @var array ActionHandler configuration.
@@ -102,7 +104,8 @@ class ZgwToVrijbrpService
         SynchronizationService $syncService,
         MappingService $mappingService,
         LoggerInterface $actionLogger,
-        LoggerInterface $mappingLogger
+        LoggerInterface $mappingLogger,
+        ObjectEntityService $objectEntityService
     ) {
         $this->entityManager = $entityManager;
         $this->callService = $callService;
@@ -110,6 +113,7 @@ class ZgwToVrijbrpService
         $this->mappingService = $mappingService;
         $this->logger = $actionLogger;
         $this->mappingLogger = $mappingLogger;
+        $this->objectEntityService = $objectEntityService;
     } //end __construct()
 
     /**
@@ -372,7 +376,7 @@ class ZgwToVrijbrpService
         $this->logger->debug("(Zaak) Object with id $dataId was created");
 
         $object = $this->entityManager->getRepository('App:ObjectEntity')->find($dataId);
-        $objectArray = $object->toArray();
+        $objectArray = $this->objectEntityService->toArray($object);
         $zaakTypeId = $objectArray['zaaktype']['identificatie'];
 
         // Do mapping with Zaak ObjectEntity as array.

@@ -4,6 +4,7 @@ namespace CommonGateway\NaamgebruikVrijBRPBundle\Service;
 
 use App\Entity\ObjectEntity;
 use CommonGateway\CoreBundle\Service\MappingService;
+use CommonGateway\CoreBundle\Service\ObjectEntityService;
 use Psr\Log\LoggerInterface;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -33,6 +34,7 @@ class UittrekselService
      * @var EntityManagerInterface
      */
     private EntityManagerInterface $entityManager;
+    private ObjectEntityService $objectEntityService;
 
     /**
      * @var array Action data (ZGW Zaak for Uittreksel)
@@ -53,12 +55,14 @@ class UittrekselService
         MappingService $mappingService,
         ZgwToVrijbrpService $zgwToVrijbrpService,
         LoggerInterface $actionLogger,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        ObjectEntityService $objectEntityService
     ) {
         $this->mappingService = $mappingService;
         $this->zgwToVrijbrpService = $zgwToVrijbrpService;
         $this->logger = $actionLogger;
         $this->entityManager = $entityManager;
+        $this->objectEntityService = $objectEntityService;
     } //end __construct()
 
     /**
@@ -157,7 +161,7 @@ class UittrekselService
         $object = $this->entityManager->getRepository('App:ObjectEntity')->find($dataId);
         $this->logger->debug("(Zaak) Object with id $dataId was created");
 
-        $objectArray = $object->toArray();
+        $objectArray = $this->objectEntityService->toArray($object);
 
         // Do mapping with Zaak ObjectEntity as array.
         $objectArray = $this->mappingService->mapping($mapping, $objectArray);
