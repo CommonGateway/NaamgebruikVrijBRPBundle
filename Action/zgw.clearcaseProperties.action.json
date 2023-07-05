@@ -2,7 +2,7 @@
   "title": "clearCasePropertiesAction",
   "$id": "https://simxml.nl/action/zgw.clearcaseproperties.action.json",
   "$schema": "https://json-schema.org/draft/2020-12/action",
-  "version": "0.0.6",
+  "version": "0.0.1",
   "listens": [
     "vrijbrp.default.listens"
   ],
@@ -10,7 +10,7 @@
   "conditions": {
     "==": [1,1]
   },
-  "class": "CommonGateway\\NaamgebruikVrijBRPBundle\\ActionHandler\\CleanupActionHandler",
+  "class": "CommonGateway\\NaamgebruikVrijBRPBundle\\ActionHandler\\CleanUpActionHandler",
   "configuration": {
     "retentionPeriod": "PT1H",
     "objectType": "https://vng.opencatalogi.nl/schemas/zrc.zaakEigenschap.schema.json"
