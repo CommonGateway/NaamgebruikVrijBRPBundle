@@ -8,10 +8,24 @@ class CleanUpService
 {
     private EntityManagerInterface $entityManager;
 
+    /**
+     * @param EntityManagerInterface $entityManager The entity manager.
+     */
     public function __construct(EntityManagerInterface $entityManager)
     {
         $this->entityManager = $entityManager;
     }
+
+    /**
+     * Removes objects of a specified schema that are older than a specified retention period.
+     *
+     * @param array $data   The data for the action.
+     * @param array $config The configuration for the action.
+     *
+     * @return array The returned data array
+     *
+     * @throws \Exception
+     */
     public function cleanUp (array $data, array $config): array
     {
         $schemaRef = $config['objectType'];
