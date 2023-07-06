@@ -31,7 +31,7 @@ class CleanUpService
         $schemaRef = $config['objectType'];
         $schema    = $this->entityManager->getRepository('App:Entity')->findOneBy(['reference' => $schemaRef]);
 
-        foreach ($schema->getObjects() as $object) {
+        foreach ($schema->getObjectEntities() as $object) {
             $retention = new \DateInterval($config['retentionPeriod']);
             $now       = new \DateTime();
 
