@@ -29,7 +29,7 @@ class CleanUpService
     public function cleanUp (array $data, array $config): array
     {
         $schemaRef = $config['objectType'];
-        $schema = $this->entityManager->getRepository('App:Entity')->findBy(['reference' => $schemaRef]);
+        $schema    = $this->entityManager->getRepository('App:Entity')->findOneBy(['reference' => $schemaRef]);
 
         foreach ($schema->getObjects() as $object) {
             $retention = new \DateInterval($config['retentionPeriod']);
