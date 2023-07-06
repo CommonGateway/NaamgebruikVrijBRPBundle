@@ -38,6 +38,7 @@ class CleanUpService
             //if the dateCreated of the object plus the retention is smaller than current time, remove
             if($object->getDateCreated()->add($retention) < $now) {
                 $this->entityManager->remove($object);
+                $this->entityManager->flush();
             }
         }
 
