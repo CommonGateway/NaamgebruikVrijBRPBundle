@@ -462,7 +462,10 @@ class ZgwToVrijbrpService
                     ],
                 ]
             );
-            $this->logger->error('Could not synchronize object. Error message: ' . $exception->getMessage() . '\nFull Response' . (($exception instanceof ServerException || $exception instanceof ClientException || $exception instanceof RequestException === true) && $exception->getResponse() !== null ? $exception->getResponse()->getBody() : ''));
+            if (method_exists(get_class($exception), 'getResponse') === true && $exception->getResponse() !== null) {
+                $responseBody = $exception->getResponse()->getBody();
+            }
+            $this->logger->error('Could not synchronize object. Error message: '.$exception->getMessage().'\nFull Response: '.($responseBody ?? ''));
 
             return [];
         } //end try
