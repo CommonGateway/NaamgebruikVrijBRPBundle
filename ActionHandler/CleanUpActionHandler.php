@@ -16,7 +16,7 @@ class CleanUpActionHandler implements ActionHandlerInterface
     private CleanUpService $cleanUpService;
 
     /**
-     * @param CleanUpService $cleanUpService The ZdsToZgwService
+     * @param CleanUpService $cleanUpService The CleanUpService
      */
     public function __construct(CleanUpService $cleanUpService)
     {

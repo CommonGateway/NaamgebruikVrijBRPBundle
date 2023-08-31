@@ -4,7 +4,6 @@ namespace CommonGateway\NaamgebruikVrijBRPBundle\ActionHandler;
 
 use CommonGateway\CoreBundle\ActionHandler\ActionHandlerInterface;
 use CommonGateway\NaamgebruikVrijBRPBundle\Service\SimXmlToZgwService;
-use CommonGateway\NaamgebruikVrijBRPBundle\Service\ZdsToZgwService;
 
 /**
  * Sim xml to a zgw zaak

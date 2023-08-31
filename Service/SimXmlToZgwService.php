@@ -243,7 +243,7 @@ class SimXmlToZgwService
         $zaakEntity = $this->getEntity('https://vng.opencatalogi.nl/schemas/zrc.zaak.schema.json');
         $zaakDocumentEntity = $this->getEntity('https://vng.opencatalogi.nl/schemas/zrc.zaakInformatieObject.schema.json');
         $documentEntity = $this->getEntity('https://vng.opencatalogi.nl/schemas/drc.enkelvoudigInformatieObject.schema.json');
-        $mapping = $this->getMapping('https://zds.nl/mapping/zds.zdsDocumentToZgwDocument.mapping.json');
+        $mapping = $this->getMapping('');
 
         $zaken = $this->cacheService->searchObjects(null, ['identificatie' => $zaakArray['identificatie']], [$zaakEntity->getId()->toString()])['results'];
         $zaakinformatieobjecten = $zaak->getValue('zaakinformatieobjecten');
