@@ -24,19 +24,6 @@ class InstallationService implements InstallerInterface
      */
     private EntityManagerInterface $entityManager;
 
-    /**
-     * @var ContainerInterface ContainerInterface.
-     */
-    private ContainerInterface $container;
-
-    /**
-     * @var SymfonyStyle SymfonyStyle for writing user feedback to console.
-     */
-    private SymfonyStyle $symfonyStyle;
-
-    public const ENDPOINTS = [
-        ['path' => 'simxml', 'throws' => ['xml.inbound'], 'name' => 'xml-endpoint', 'methods' => []],
-    ];
 
     public const SOURCES = [
         ['name'             => 'vrijbrp-soap', 'location' => 'https://vrijbrp.nl/personen-zaken-ws/services', 'auth' => 'vrijbrp-jwt',
@@ -48,27 +35,11 @@ class InstallationService implements InstallerInterface
      * Construct an InstallationService.
      *
      * @param EntityManagerInterface $entityManager EntityManagerInterface.
-     * @param ContainerInterface     $container     ContainerInterface.
      */
-    public function __construct(EntityManagerInterface $entityManager, ContainerInterface $container)
+    public function __construct(EntityManagerInterface $entityManager)
     {
         $this->entityManager = $entityManager;
-        $this->container = $container;
     }//end __construct()
-
-    /**
-     * Set symfony style in order to output to the console.
-     *
-     * @param SymfonyStyle $symfonyStyle SymfonyStyle for writing user feedback to console.
-     *
-     * @return self This.
-     */
-    public function setStyle(SymfonyStyle $symfonyStyle): self
-    {
-        $this->symfonyStyle = $symfonyStyle;
-
-        return $this;
-    }
 
     /**
      * Install for this bundle.
@@ -99,74 +70,6 @@ class InstallationService implements InstallerInterface
     {
         // Do some cleanup.
     }//end uninstall()
-
-    /**
-     * Create endpoints for this bundle.
-     *
-     * @param array $endpoints An array of data used to create Endpoints.
-     *
-     * @return array Created endpoints.
-     */
-    private function createEndpoints(array $endpoints): array
-    {
-        $endpointRepository = $this->entityManager->getRepository('App:Endpoint');
-        $createdEndpoints = [];
-        foreach ($endpoints as $endpoint) {
-            $explodedPath = explode('/', $endpoint['path']);
-            if ($explodedPath[0] === '') {
-                array_shift($explodedPath);
-            }
-
-            $pathRegEx = '^'.$endpoint['path'].'$';
-            if ($endpointRepository->findOneBy(['pathRegex' => $pathRegEx]) instanceof Endpoint === false) {
-                $createdEndpoint = new Endpoint();
-                $createdEndpoint->setName($endpoint['name']);
-                $createdEndpoint->setPath($explodedPath);
-                $createdEndpoint->setPathRegex($pathRegEx);
-                $createdEndpoint->setMethods(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']);
-                $createdEndpoint->setThrows($endpoint['throws']);
-                $createdEndpoint->getDefaultContentType('text/xml');
-                $createdEndpoints[] = $createdEndpoint;
-
-                $this->entityManager->persist($createdEndpoint);
-                $this->entityManager->flush();
-            }
-        }
-        if (isset($this->symfonyStyle) === true) {
-            $this->symfonyStyle->writeln(count($createdEndpoints).' Endpoints Created');
-        }
-
-        return $createdEndpoints;
-    }//end createEndpoints()
-
-    /**
-     * Create cronjobs for this bundle.
-     *
-     * @return void Nothing.
-     */
-    public function createCronjobs()
-    {
-        if (isset($this->symfonyStyle) === true) {
-            $this->symfonyStyle->writeln(['', '<info>Looking for cronjobs</info>']);
-        }
-        // We only need 1 cronjob so lets set that.
-        $cronjob = $this->entityManager->getRepository('App:Cronjob')->findOneBy(['name' => 'VrijBRP']);
-        if ($cronjob instanceof Cronjob === false) {
-            $cronjob = new Cronjob();
-            $cronjob->setName('VrijBRP');
-            $cronjob->setDescription('This cronjob fires all the VrijBRP actions ever 5 minutes');
-            $cronjob->setThrows(['vrijbrp.default.listens']);
-            $cronjob->setIsEnabled(true);
-
-            $this->entityManager->persist($cronjob);
-
-            if (isset($this->symfonyStyle) === true) {
-                $this->symfonyStyle->writeln(['', 'Created a cronjob for '.$cronjob->getName()]);
-            }
-        } elseif (isset($this->symfonyStyle) === true) {
-            $this->symfonyStyle->writeln(['', 'There is already a cronjob for '.$cronjob->getName()]);
-        }
-    }//end createCronjobs()
 
     /**
      * Creates the Sources we need.
@@ -211,12 +114,6 @@ class InstallationService implements InstallerInterface
      */
     public function checkDataConsistency()
     {
-        // Create endpoints.
-        $this->createEndpoints($this::ENDPOINTS);
-
-        // Create cronjobs.
-        $this->createCronjobs();
-
         // Create sources.
         $this->createSources($this::SOURCES);
 
