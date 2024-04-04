@@ -51,11 +51,12 @@ class EmigratieService
      * @param ZgwToVrijbrpService $zgwToVrijbrpService ZgwToVrijbrpService.
      */
     public function __construct(
-        MappingService $mappingService,
-        ZgwToVrijbrpService $zgwToVrijbrpService,
-        LoggerInterface $actionLogger,
+        MappingService         $mappingService,
+        ZgwToVrijbrpService    $zgwToVrijbrpService,
+        LoggerInterface        $actionLogger,
         EntityManagerInterface $entityManager
-    ) {
+    )
+    {
         $this->mappingService = $mappingService;
         $this->zgwToVrijbrpService = $zgwToVrijbrpService;
         $this->logger = $actionLogger;
@@ -72,34 +73,29 @@ class EmigratieService
      */
     public function getMeeEmigranten(array $zaakEigenschappen): array
     {
-        $meeEmigranten = [];
-        $meeEmigranten[] = [
-            'emig:MeeEmigrant' => [
-                'emig:Burgerservicenummer' => $zaakEigenschappen["BSN"],
-                'emig:OmschrijvingAangifte' => 'G',
-                'emig:Duur' => 'l'
-            ]
+        $meeEmigranten['emig:MeeEmigrant'] = [];
+
+        $meeEmigranten['emig:MeeEmigrant'][] = [
+            'emig:Burgerservicenummer' => $zaakEigenschappen["BSN"],
+            'emig:OmschrijvingAangifte' => 'G',
+            'emig:Duur' => 'l'
         ];
 
         if (isset($zaakEigenschappen["MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.BSN"])) {
-            $meeEmigranten[] = [
-                'emig:MeeEmigrant' => [
-                    'emig:Burgerservicenummer' => $zaakEigenschappen["MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.BSN"],
-                    'emig:OmschrijvingAangifte' => $zaakEigenschappen['MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.ROL'],
-                    'emig:Duur' => 'l'
-                ]
+            $meeEmigranten['emig:MeeEmigrant'][] = [
+                'emig:Burgerservicenummer' => $zaakEigenschappen["MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.BSN"],
+                'emig:OmschrijvingAangifte' => $zaakEigenschappen['MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.ROL'],
+                'emig:Duur' => 'l'
             ];
             return $meeEmigranten;
         }// end if
 
         $index = 1;
         while (isset($zaakEigenschappen["MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.$index.BSN"])) {
-            $meeEmigranten[] = [
-                'emig:MeeEmigrant' => [
-                    'emig:Burgerservicenummer' => $zaakEigenschappen["MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.$index.BSN"],
-                    'emig:OmschrijvingAangifte' => $zaakEigenschappen["MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.$index.rol"],
-                    'emig:Duur' => 'l'
-                ]
+            $meeEmigranten['emig:MeeEmigrant'][] = [
+                'emig:Burgerservicenummer' => $zaakEigenschappen["MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.$index.BSN"],
+                'emig:OmschrijvingAangifte' => $zaakEigenschappen["MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.$index.ROL"],
+                'emig:Duur' => 'l'
             ];
             $index++;
         }// end while
@@ -111,7 +107,7 @@ class EmigratieService
     /**
      * This function gets the adressen from the zgwZaak with the given eigenschappen (simXml elementen and Stuf extraElementen).
      *
-     * @param array  $zaakEigenschappen The zaak eigenschappen.
+     * @param array $zaakEigenschappen The zaak eigenschappen.
      *
      * @return array adressen
      */
@@ -127,7 +123,7 @@ class EmigratieService
     /**
      * Maps zgw eigenschappen to vrijbrp soap emigratie.
      *
-     * @param ObjectEntity  $object The zgw case ObjectEntity.
+     * @param ObjectEntity $object The zgw case ObjectEntity.
      * @param array $output The output data
      *
      * @return array
@@ -157,14 +153,14 @@ class EmigratieService
         return $output;
     } //end getEmigratieProperties()
 
-    
+
     /**
      * Main function which maps and posts the xml soap emigratie.
-     * 
-     * @var array $data          The ZGW Zaak for a emigratie.
-     * @var array $configuration The action configuration.
-     *  
+     *
      * @return array $data Standard returns data the function was entered with.
+     * @var array $configuration The action configuration.
+     *
+     * @var array $data The ZGW Zaak for a emigratie.
      */
     public function zgwToVrijbrpHandler(array $data, array $configuration): array
     {
