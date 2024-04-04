@@ -90,7 +90,7 @@ class EmigratieService
             return $meeEmigranten;
         }// end if
 
-        $index = 1;
+        $index = 0;
         while (isset($zaakEigenschappen["MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.$index.BSN"])) {
             $meeEmigranten['emig:MeeEmigrant'][] = [
                 'emig:Burgerservicenummer' => $zaakEigenschappen["MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.$index.BSN"],
