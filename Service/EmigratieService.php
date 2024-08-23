@@ -77,7 +77,7 @@ class EmigratieService
 
         $meeEmigranten['emig:MeeEmigrant'][] = [
             'emig:Burgerservicenummer' => $zaakEigenschappen["BSN"],
-            'emig:OmschrijvingAangifte' => 'G',
+            'emig:OmschrijvingAangifte' => 'I',
             'emig:Duur' => 'l'
         ];
 
