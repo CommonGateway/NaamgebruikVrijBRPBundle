@@ -2,8 +2,9 @@
   "title": "ZgwToVrijbrp",
   "$id": "https://vrijbrp.nl/mapping/vrijbrp.ZgwToVrijbrpNaamgebruik.mapping.json",
   "$schema": "https://json-schema.org/draft/2020-12/mapping",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "passTrough": false,
+  "description": "The order of these Zaakgegevens matter! \"zaakID\", \"bron\", \"leverancier\", \"medewerker\", \"datumAanvraag\", \"toelichting\". Please do not change the order!!! And zaakID & datumAanvraag are required.",
   "mapping": {
     "@xmlns:soapenv": "http://schemas.xmlsoap.org/soap/envelope/",
     "@xmlns:dien": "urn:nl/procura/gba/v1.5/diensten",
