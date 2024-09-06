@@ -299,6 +299,11 @@ class ZgwToVrijbrpService
     {
         $zaakEigenschappen = [];
         foreach ($zaakObjectEntity->getValue('eigenschappen') as $eigenschap) {
+            if ($eigenschap->getValue('naam') === null && $eigenschap->getValue('eigenschap') !== null) {
+                $zaakEigenschappen[$eigenschap->getValue('eigenschap')->getValue('naam')] = $eigenschap->getValue('waarde');
+                
+                continue;
+            }
             if (in_array($eigenschap->getValue('naam'), $properties) || in_array('all', $properties)) {
                 $zaakEigenschappen[$eigenschap->getValue('naam')] = $eigenschap->getValue('waarde');
             }
