@@ -63,6 +63,33 @@ class EmigratieService
         $this->entityManager = $entityManager;
     } //end __construct()
 
+    /**
+     * Translate rol from SimForm to BRP code
+     *
+     * @param string $rol The role received from VrijBRP
+     *
+     * @return string The BRP code
+     */
+    public function getRol(string $rol): string
+    {
+        switch ($rol) {
+        case 'REGISTERED':
+            return 'I';
+        case 'AUTHORITY_HOLDER':
+            return 'G';
+        case 'ADULT_CHILD_LIVING_WITH_PARENTS':
+            return 'K';
+        case 'ADULT_AUTHORIZED_REPRESENTATIVE':
+            return 'M';
+        case 'PARTNER':
+            return 'P';
+        case 'PARENT_LIVING_WITH_ADULT_CHILD':
+            return 'O';
+        default:
+            return $rol;
+        }
+    }
+
 
     /**
      * This function gets the mee emigranten from the zgwZaak with the given properties (simXml elementen and Stuf extraElementen).
@@ -77,14 +104,14 @@ class EmigratieService
 
         $meeEmigranten['emig:MeeEmigrant'][] = [
             'emig:Burgerservicenummer' => $zaakEigenschappen["BSN"],
-            'emig:OmschrijvingAangifte' => 'I',
+            'emig:OmschrijvingAangifte' => $this->getRol(rol: 'I'),
             'emig:Duur' => 'l'
         ];
 
         if (isset($zaakEigenschappen["MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.BSN"])) {
             $meeEmigranten['emig:MeeEmigrant'][] = [
                 'emig:Burgerservicenummer' => $zaakEigenschappen["MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.BSN"],
-                'emig:OmschrijvingAangifte' => $zaakEigenschappen['MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.ROL'],
+                'emig:OmschrijvingAangifte' => $this->getRol(rol: $zaakEigenschappen['MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.ROL']),
                 'emig:Duur' => 'l'
             ];
             return $meeEmigranten;
@@ -94,7 +121,7 @@ class EmigratieService
         while (isset($zaakEigenschappen["MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.$index.BSN"])) {
             $meeEmigranten['emig:MeeEmigrant'][] = [
                 'emig:Burgerservicenummer' => $zaakEigenschappen["MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.$index.BSN"],
-                'emig:OmschrijvingAangifte' => $zaakEigenschappen["MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.$index.ROL"],
+                'emig:OmschrijvingAangifte' => $this->getRol(rol: $zaakEigenschappen["MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.$index.ROL"]),
                 'emig:Duur' => 'l'
             ];
             $index++;
