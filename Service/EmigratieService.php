@@ -63,24 +63,30 @@ class EmigratieService
         $this->entityManager = $entityManager;
     } //end __construct()
 
+    /**
+     * Translate rol from SimForm to BRP code
+     *
+     * @param string $rol The role received from VrijBRP
+     *
+     * @return string The BRP code
+     */
     public function getRol(string $rol): string
     {
-        switch($rol) {
-            case 'REGISTERED':
-                return 'I';
-            case 'AUTHORITY_HOLDER':
-                return 'G';
-            case 'ADULT_CHILD_LIVING_WITH_PARENTS':
-                return 'K';
-            case 'ADULT_AUTHORIZED_REPRESENTATIVE':
-                return 'M';
-            case 'PARTNER':
-                return 'P';
-            case 'PARENT_LIVING_WITH_ADULT_CHILD':
-                return 'O';
-            default:
-                return $rol;
-
+        switch ($rol) {
+        case 'REGISTERED':
+            return 'I';
+        case 'AUTHORITY_HOLDER':
+            return 'G';
+        case 'ADULT_CHILD_LIVING_WITH_PARENTS':
+            return 'K';
+        case 'ADULT_AUTHORIZED_REPRESENTATIVE':
+            return 'M';
+        case 'PARTNER':
+            return 'P';
+        case 'PARENT_LIVING_WITH_ADULT_CHILD':
+            return 'O';
+        default:
+            return $rol;
         }
     }
 
