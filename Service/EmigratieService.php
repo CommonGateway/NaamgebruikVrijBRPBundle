@@ -104,14 +104,14 @@ class EmigratieService
 
         $meeEmigranten['emig:MeeEmigrant'][] = [
             'emig:Burgerservicenummer' => $zaakEigenschappen["BSN"],
-            'emig:OmschrijvingAangifte' => $this->getRol(rol: 'I'),
+            'emig:OmschrijvingAangifte' => $this->getRol('I'),
             'emig:Duur' => 'l'
         ];
 
         if (isset($zaakEigenschappen["MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.BSN"])) {
             $meeEmigranten['emig:MeeEmigrant'][] = [
                 'emig:Burgerservicenummer' => $zaakEigenschappen["MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.BSN"],
-                'emig:OmschrijvingAangifte' => $this->getRol(rol: $zaakEigenschappen['MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.ROL']),
+                'emig:OmschrijvingAangifte' => $this->getRol($zaakEigenschappen['MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.ROL']),
                 'emig:Duur' => 'l'
             ];
             return $meeEmigranten;
@@ -121,7 +121,7 @@ class EmigratieService
         while (isset($zaakEigenschappen["MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.$index.BSN"])) {
             $meeEmigranten['emig:MeeEmigrant'][] = [
                 'emig:Burgerservicenummer' => $zaakEigenschappen["MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.$index.BSN"],
-                'emig:OmschrijvingAangifte' => $this->getRol(rol: $zaakEigenschappen["MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.$index.ROL"]),
+                'emig:OmschrijvingAangifte' => $this->getRol($zaakEigenschappen["MEEVERHUIZENDE_GEZINSLEDEN.MEEVERHUIZEND_GEZINSLID.$index.ROL"]),
                 'emig:Duur' => 'l'
             ];
             $index++;
